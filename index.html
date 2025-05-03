@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Prettifier</title>
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
+</head>
+<body>
+  <header>
+    <h1>JSON Prettifier</h1>
+    <div class="controls">
+      <button id="prettify" class="primary-btn">Prettify</button>
+      <button id="clear" class="secondary-btn">Clear</button>
+      <button id="copy" class="secondary-btn">Copy</button>
+      <select id="indentation" title="Indentation">
+        <option value="2">2 Spaces</option>
+        <option value="4">4 Spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+      <div class="theme-toggle">
+        <label class="theme-switch">
+          <input type="checkbox" id="theme-toggle">
+          <span class="theme-slider"></span>
+          <span class="theme-label">Dark Mode</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="editor-container">
+      <div id="json-editor" class="editor"></div>
+    </div>
+
+    <div class="status-bar">
+      <div id="error-message" class="error-message"></div>
+      <div id="path-display" class="path-display"></div>
+      <div id="status-text" class="status-text">Ready</div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">
+    <div class="toast-message" id="toast-message"></div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

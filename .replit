@@ -1,0 +1,40 @@
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ElectronApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "electron_app"
+
+[[workflows.workflow]]
+name = "ElectronApp"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install electron@latest && npm start"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "electron_app"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install electron && npx electron ."
+
+[deployment]
+run = ["sh", "-c", "npm install electron@latest && npm start"]
