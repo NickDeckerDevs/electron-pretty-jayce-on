@@ -72,7 +72,24 @@ h1 {
 .controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-group label {
+  font-size: 0.8rem;
+  color: var(--secondary-color);
+}
+
+.control-buttons {
+  display: flex;
+  gap: 5px;
 }
 
 button {
@@ -151,6 +168,62 @@ main {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--secondary-color);
+}
+
+.breadcrumb-wrapper {
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  margin-right: 10px;
+}
+
+.breadcrumb-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.breadcrumb-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+.breadcrumb-display {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+}
+
+.breadcrumb-item {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+  margin-right: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.breadcrumb-item:hover {
+  background-color: rgba(0, 123, 255, 0.2);
+}
+
+.breadcrumb-separator {
+  margin: 0 5px;
+  color: var(--secondary-color);
+}
+
+.path-copy {
+  cursor: pointer;
+  color: var(--secondary-color);
+  padding: 2px 5px;
+  border-radius: var(--border-radius);
+  margin-right: 5px;
+}
+
+.path-copy:hover {
+  background-color: var(--button-hover);
 }
 
 .status-text {

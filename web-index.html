@@ -18,11 +18,30 @@
       <button id="clear" class="secondary-btn">Clear</button>
       <button id="copy" class="secondary-btn">Copy</button>
       <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
-      <select id="indentation" title="Indentation">
-        <option value="2">2 Spaces</option>
-        <option value="4">4 Spaces</option>
-        <option value="tab">Tab</option>
-      </select>
+      
+      <div class="control-group">
+        <label>Indentation:</label>
+        <select id="indentation" title="Indentation">
+          <option value="2">2 Spaces</option>
+          <option value="4">4 Spaces</option>
+          <option value="tab">Tab</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>View Mode:</label>
+        <select id="view-mode" title="View Mode">
+          <option value="formatted">Formatted</option>
+          <option value="tree">Tree View</option>
+        </select>
+      </div>
+      
+      <div class="control-buttons">
+        <button id="expand-all" class="icon-btn" title="Expand All"><i class="fas fa-expand-alt"></i></button>
+        <button id="collapse-all" class="icon-btn" title="Collapse All"><i class="fas fa-compress-alt"></i></button>
+        <button id="sort-json" class="icon-btn" title="Sort Properties"><i class="fas fa-sort-alpha-down"></i></button>
+      </div>
+      
       <div class="theme-toggle">
         <label class="theme-switch">
           <input type="checkbox" id="theme-toggle">
@@ -30,7 +49,8 @@
           <span class="theme-label">Dark Mode</span>
         </label>
       </div>
-      <button id="settings-btn" class="icon-btn"><i class="fas fa-cog"></i></button>
+      
+      <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
     </div>
   </header>
 
@@ -54,7 +74,11 @@
 
     <div class="status-bar">
       <div id="error-message" class="error-message"></div>
+      <div class="breadcrumb-wrapper">
+        <div id="breadcrumb-display" class="breadcrumb-display"></div>
+      </div>
       <div id="path-display" class="path-display"></div>
+      <div id="path-copy" class="path-copy" title="Copy path"><i class="fas fa-copy"></i></div>
       <div id="status-text" class="status-text">Ready</div>
     </div>
   </main>

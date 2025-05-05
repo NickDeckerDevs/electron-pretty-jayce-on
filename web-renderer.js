@@ -575,8 +575,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const position = e.position;
         const path = getJsonPathAtPosition(jsonEditor.getValue(), position);
         pathDisplay.textContent = path ? path : '';
+        updateBreadcrumbs(path);
       }
     });
+    
+    // Path copy button handler
+    const pathCopyBtn = document.getElementById('path-copy');
+    if (pathCopyBtn) {
+      pathCopyBtn.addEventListener('click', () => {
+        const path = pathCopyBtn.dataset.path;
+        if (path) {
+          const accessCode = generateAccessCode(path);
+          navigator.clipboard.writeText(accessCode)
+            .then(() => showToast(`Copied to clipboard: ${accessCode}`))
+            .catch(err => showError('Failed to copy path: ' + err));
+        }
+      });
+    }
     
     // New event listeners for the additional features
     
@@ -973,5 +988,164 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error getting JSON path:', e);
       return '';
     }
+  }
+
+  // Helper function to generate breadcrumb elements
+  function updateBreadcrumbs(jsonPath) {
+    const breadcrumbDisplay = document.getElementById('breadcrumb-display');
+    if (!breadcrumbDisplay) return;
+    
+    breadcrumbDisplay.innerHTML = '';
+    
+    if (!jsonPath) {
+      breadcrumbDisplay.innerHTML = '<div class="empty-breadcrumb">No path selected</div>';
+      return;
+    }
+    
+    // Split the path into segments
+    const segments = [];
+    let currentPath = '';
+    let tempPath = jsonPath;
+    
+    // Handle array notation
+    while (tempPath.includes('[')) {
+      const dotIndex = tempPath.indexOf('.');
+      const bracketIndex = tempPath.indexOf('[');
+      
+      if (dotIndex === -1 || (bracketIndex !== -1 && bracketIndex < dotIndex)) {
+        // We have an array notation next
+        if (bracketIndex > 0) {
+          // There's a property name before the bracket
+          const propertyName = tempPath.substring(0, bracketIndex);
+          currentPath += (currentPath ? '.' : '') + propertyName;
+          segments.push({ 
+            text: propertyName, 
+            path: currentPath,
+            isProperty: true 
+          });
+          
+          tempPath = tempPath.substring(bracketIndex);
+        }
+        
+        // Extract the array index
+        const closeBracketIndex = tempPath.indexOf(']');
+        if (closeBracketIndex !== -1) {
+          const arrayIndex = tempPath.substring(1, closeBracketIndex);
+          currentPath += `[${arrayIndex}]`;
+          segments.push({ 
+            text: `[${arrayIndex}]`, 
+            path: currentPath,
+            isArray: true 
+          });
+          
+          // Move past the closing bracket
+          tempPath = tempPath.substring(closeBracketIndex + 1);
+          
+          // If the next character is a dot, skip it
+          if (tempPath.startsWith('.')) {
+            tempPath = tempPath.substring(1);
+          }
+        } else {
+          // Malformed path, just add the rest
+          segments.push({ text: tempPath, path: currentPath + tempPath });
+          break;
+        }
+      } else {
+        // We have a dot notation next
+        const propertyName = tempPath.substring(0, dotIndex);
+        currentPath += (currentPath ? '.' : '') + propertyName;
+        segments.push({ 
+          text: propertyName, 
+          path: currentPath,
+          isProperty: true 
+        });
+        
+        // Move past the property and dot
+        tempPath = tempPath.substring(dotIndex + 1);
+      }
+    }
+    
+    // Handle any remaining part (no brackets)
+    if (tempPath) {
+      currentPath += (currentPath ? '.' : '') + tempPath;
+      segments.push({ 
+        text: tempPath, 
+        path: currentPath,
+        isProperty: true 
+      });
+    }
+    
+    // Create the breadcrumb elements
+    segments.forEach((segment, index) => {
+      const breadcrumbItem = document.createElement('div');
+      breadcrumbItem.className = 'breadcrumb-item';
+      breadcrumbItem.dataset.path = segment.path;
+      breadcrumbItem.textContent = segment.text;
+      
+      // Add click event to navigate to that path
+      breadcrumbItem.addEventListener('click', () => {
+        // Implement navigation logic here
+        // This could highlight the position in the editor
+        // or scroll to the relevant section
+        navigateToJsonPath(segment.path);
+      });
+      
+      breadcrumbDisplay.appendChild(breadcrumbItem);
+      
+      // Add separator if not the last item
+      if (index < segments.length - 1) {
+        const separator = document.createElement('span');
+        separator.className = 'breadcrumb-separator';
+        separator.textContent = '>';
+        breadcrumbDisplay.appendChild(separator);
+      }
+    });
+    
+    // Add copy button event
+    const pathCopyBtn = document.getElementById('path-copy');
+    if (pathCopyBtn) {
+      pathCopyBtn.dataset.path = jsonPath;
+    }
+  }
+  
+  // Function to navigate to a specific JSON path
+  function navigateToJsonPath(path) {
+    if (!currentJson || !path) return;
+    
+    // Generate JavaScript code to access this path
+    const accessCode = generateAccessCode(path);
+    
+    // Show a toast with the access code
+    showToast(`Path: ${accessCode}`, false, 5000);
+    
+    // Future enhancement: Actually navigate to this location in the editor
+    // This would require finding the position in the text that corresponds to this path
+  }
+  
+  // Function to generate JavaScript code to access a JSON path
+  function generateAccessCode(path) {
+    if (!path) return 'data';
+    
+    let code = 'data';
+    const segments = path.split('.');
+    
+    segments.forEach(segment => {
+      if (segment.includes('[')) {
+        // This is a property with array access
+        const propName = segment.substring(0, segment.indexOf('['));
+        const arrayAccess = segment.substring(segment.indexOf('['));
+        
+        if (propName) {
+          code += `.${propName}${arrayAccess}`;
+        } else {
+          code += arrayAccess;
+        }
+      } else {
+        // This is a simple property
+        code += `.${segment}`;
+      }
+    });
+    
+    return code;
   }
 });
