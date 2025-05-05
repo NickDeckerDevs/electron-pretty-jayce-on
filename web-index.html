@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON Prettifier (Web Version)</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Monaco Editor -->
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
@@ -16,6 +17,7 @@
       <button id="prettify" class="primary-btn">Prettify</button>
       <button id="clear" class="secondary-btn">Clear</button>
       <button id="copy" class="secondary-btn">Copy</button>
+      <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
       <select id="indentation" title="Indentation">
         <option value="2">2 Spaces</option>
         <option value="4">4 Spaces</option>
@@ -28,10 +30,24 @@
           <span class="theme-label">Dark Mode</span>
         </label>
       </div>
+      <button id="settings-btn" class="icon-btn"><i class="fas fa-cog"></i></button>
     </div>
   </header>
 
   <main>
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>Saved Documents</h3>
+        <button id="close-sidebar" class="icon-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="sidebar-content">
+        <div id="documents-list" class="documents-list">
+          <!-- Saved documents will be loaded here -->
+          <div class="empty-state">No saved documents</div>
+        </div>
+      </div>
+    </div>
+
     <div class="editor-container">
       <div id="json-editor" class="editor"></div>
     </div>
@@ -42,6 +58,127 @@
       <div id="status-text" class="status-text">Ready</div>
     </div>
   </main>
+
+  <!-- Save Document Modal -->
+  <div id="save-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Save Document</h3>
+        <button id="close-save-modal" class="icon-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="document-title">Title:</label>
+          <input type="text" id="document-title" placeholder="Enter a title for your document">
+        </div>
+        <div class="form-group">
+          <label for="document-tags">Tags (comma separated):</label>
+          <input type="text" id="document-tags" placeholder="tag1, tag2, tag3">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-save" class="primary-btn">Save</button>
+        <button id="cancel-save" class="secondary-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button id="close-settings-modal" class="icon-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-section">
+          <h4>Editor Preferences</h4>
+          <div class="form-group">
+            <label for="default-indentation">Default Indentation:</label>
+            <select id="default-indentation">
+              <option value="2">2 Spaces</option>
+              <option value="4">4 Spaces</option>
+              <option value="tab">Tab</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="default-theme">Default Theme:</label>
+            <select id="default-theme">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h4>Custom Theme</h4>
+          <div class="custom-themes-list" id="custom-themes-list">
+            <!-- Custom themes will appear here -->
+          </div>
+          <div class="form-group">
+            <button id="create-theme-btn" class="secondary-btn">Create New Theme</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" class="primary-btn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Editor Modal -->
+  <div id="theme-editor-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Theme Editor</h3>
+        <button id="close-theme-editor" class="icon-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="theme-name">Theme Name:</label>
+          <input type="text" id="theme-name" placeholder="My Custom Theme">
+        </div>
+        <div class="theme-colors">
+          <div class="color-picker">
+            <label for="theme-background">Background:</label>
+            <input type="color" id="theme-background">
+          </div>
+          <div class="color-picker">
+            <label for="theme-text">Text:</label>
+            <input type="color" id="theme-text">
+          </div>
+          <div class="color-picker">
+            <label for="theme-string">Strings:</label>
+            <input type="color" id="theme-string">
+          </div>
+          <div class="color-picker">
+            <label for="theme-number">Numbers:</label>
+            <input type="color" id="theme-number">
+          </div>
+          <div class="color-picker">
+            <label for="theme-property">Properties:</label>
+            <input type="color" id="theme-property">
+          </div>
+          <div class="color-picker">
+            <label for="theme-boolean">Booleans/null:</label>
+            <input type="color" id="theme-boolean">
+          </div>
+        </div>
+        <div class="theme-preview">
+          <h4>Preview:</h4>
+          <pre id="theme-preview-code" class="theme-preview-code">{
+  "name": "Sample Object",
+  "active": true,
+  "count": 42,
+  "items": ["string", null, false]
+}</pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-theme" class="primary-btn">Save Theme</button>
+        <button id="cancel-theme" class="secondary-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <div class="toast" id="toast">
     <div class="toast-message" id="toast-message"></div>
