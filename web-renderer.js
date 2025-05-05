@@ -542,8 +542,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       try {
-        // Try to parse the JSON to validate it
-        const parsed = JSON.parse(rawJson);
+        let parsed;
+        
+        // First try standard JSON parsing
+        try {
+          parsed = JSON.parse(rawJson);
+          console.log('Successfully parsed as JSON');
+        } catch (jsonError) {
+          console.log('Standard JSON parsing failed, trying JavaScript object parsing');
+          try {
+            // Try to evaluate as JavaScript object notation
+            // Use Function constructor to safely evaluate JavaScript object
+            // This allows for unquoted keys and single quotes
+            parsed = Function('return ' + rawJson)();
+            console.log('Successfully parsed as JavaScript object');
+          } catch (jsError) {
+            console.log('JavaScript object parsing failed, trying to fix common issues');
+            // If both attempts fail, try to fix common issues and retry
+            let fixedInput = rawJson
+              // Replace single quotes with double quotes
+              .replace(/'/g, '"')
+              // Add quotes to unquoted keys
+              .replace(/([{,])\s*(\w+)\s*:/g, '$1"$2":')
+              // Handle trailing commas
+              .replace(/,\s*([\]}])/g, '$1');
+              
+            try {
+              parsed = JSON.parse(fixedInput);
+              console.log('Successfully parsed after automatic fixing');
+              showToast('Fixed and formatted JavaScript object notation', false, 3000);
+            } catch (finalError) {
+              throw new Error('Could not parse input as JSON or JavaScript object: ' + jsonError.message);
+            }
+          }
+        }
+        
         currentJson = parsed;
         
         // Pretty print with selected indentation
@@ -559,9 +592,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Show success toast
         showToast('JSON formatted successfully!');
+        
+        // Update view mode if needed
+        if (currentViewMode === 'tree') {
+          convertToTreeView();
+        }
       } catch (error) {
         // Show error message
-        showError(`Invalid JSON: ${error.message}`);
+        showError(`Parsing error: ${error.message}`);
         statusText.textContent = 'Error';
       }
     });
@@ -654,9 +692,38 @@ document.addEventListener('DOMContentLoaded', () => {
       saveDocumentBtn.addEventListener('click', () => {
         const rawJson = jsonEditor.getValue();
         
+        // For saving, use the same parsing logic we use for the prettify button
         try {
-          // Validate JSON before saving
-          const parsed = JSON.parse(rawJson);
+          let parsed;
+          
+          // First try standard JSON parsing
+          try {
+            parsed = JSON.parse(rawJson);
+          } catch (jsonError) {
+            // If JSON parsing fails, try to handle JavaScript object notation
+            try {
+              parsed = Function('return ' + rawJson)();
+            } catch (jsError) {
+              // If both attempts fail, try to fix common issues and retry
+              let fixedInput = rawJson
+                // Replace single quotes with double quotes
+                .replace(/'/g, '"')
+                // Add quotes to unquoted keys
+                .replace(/([{,])\s*(\w+)\s*:/g, '$1"$2":')
+                // Handle trailing commas
+                .replace(/,\s*([\]}])/g, '$1');
+                
+              try {
+                parsed = JSON.parse(fixedInput);
+                // First convert to proper JSON format to ensure we'll be able to save it
+                rawJson = JSON.stringify(parsed);
+                jsonEditor.setValue(rawJson);
+                showToast('Converted to standard JSON format', false, 3000);
+              } catch (finalError) {
+                throw new Error('Could not parse input as JSON or JavaScript object');
+              }
+            }
+          }
           
           // Show save modal
           const saveModal = document.getElementById('save-modal');
@@ -677,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           saveModal.classList.add('active');
         } catch (error) {
-          showError(`Invalid JSON: ${error.message}`);
+          showError(`Cannot save: ${error.message}`);
         }
       });
     }

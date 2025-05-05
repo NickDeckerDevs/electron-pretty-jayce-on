@@ -67,8 +67,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       try {
-        // Try to parse the JSON to validate it
-        const parsed = JSON.parse(rawJson);
+        let parsed;
+        
+        // First try standard JSON parsing
+        try {
+          parsed = JSON.parse(rawJson);
+          console.log('Successfully parsed as JSON');
+        } catch (jsonError) {
+          console.log('Standard JSON parsing failed, trying JavaScript object parsing');
+          try {
+            // Try to evaluate as JavaScript object notation
+            // Use Function constructor to safely evaluate JavaScript object
+            // This allows for unquoted keys and single quotes
+            parsed = Function('return ' + rawJson)();
+            console.log('Successfully parsed as JavaScript object');
+          } catch (jsError) {
+            console.log('JavaScript object parsing failed, trying to fix common issues');
+            // If both attempts fail, try to fix common issues and retry
+            let fixedInput = rawJson
+              // Replace single quotes with double quotes
+              .replace(/'/g, '"')
+              // Add quotes to unquoted keys
+              .replace(/([{,])\s*(\w+)\s*:/g, '$1"$2":')
+              // Handle trailing commas
+              .replace(/,\s*([\]}])/g, '$1');
+              
+            try {
+              parsed = JSON.parse(fixedInput);
+              console.log('Successfully parsed after automatic fixing');
+              showToast('Fixed and formatted JavaScript object notation', false);
+            } catch (finalError) {
+              throw new Error('Could not parse input as JSON or JavaScript object: ' + jsonError.message);
+            }
+          }
+        }
+        
         currentJson = parsed;
         
         // Pretty print with selected indentation
@@ -86,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('JSON formatted successfully!');
       } catch (error) {
         // Show error message
-        showError(`Invalid JSON: ${error.message}`);
+        showError(`Parsing error: ${error.message}`);
         statusText.textContent = 'Error';
       }
     });

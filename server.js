@@ -26,11 +26,42 @@ app.use((req, res, next) => {
 // JSON prettify API endpoint
 app.post('/api/prettify', express.json(), (req, res) => {
   try {
-    const rawJson = req.body.json;
+    const rawInput = req.body.json;
     const indentation = req.body.indentation || 2;
+    let parsed;
     
-    // Parse and stringify to format the JSON
-    const parsed = JSON.parse(rawJson);
+    // Try different parsing methods, starting with standard JSON
+    try {
+      parsed = JSON.parse(rawInput);
+      console.log('Server: Successfully parsed as JSON');
+    } catch (jsonError) {
+      console.log('Server: Standard JSON parsing failed, trying JavaScript object parsing');
+      try {
+        // Use Function constructor to safely evaluate JavaScript object
+        // This allows for unquoted keys and single quotes
+        parsed = Function('return ' + rawInput)();
+        console.log('Server: Successfully parsed as JavaScript object');
+      } catch (jsError) {
+        console.log('Server: JavaScript object parsing failed, trying to fix common issues');
+        // If both attempts fail, try to fix common issues and retry
+        let fixedInput = rawInput
+          // Replace single quotes with double quotes
+          .replace(/'/g, '"')
+          // Add quotes to unquoted keys
+          .replace(/([{,])\s*(\w+)\s*:/g, '$1"$2":')
+          // Handle trailing commas
+          .replace(/,\s*([\]}])/g, '$1');
+          
+        try {
+          parsed = JSON.parse(fixedInput);
+          console.log('Server: Successfully parsed after automatic fixing');
+        } catch (finalError) {
+          throw new Error('Could not parse input as JSON or JavaScript object: ' + jsonError.message);
+        }
+      }
+    }
+    
+    // Format with selected indentation
     const formatted = JSON.stringify(parsed, null, indentation);
     
     res.json({ success: true, formatted });
