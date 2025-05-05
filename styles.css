@@ -90,6 +90,22 @@ h1 {
 .control-buttons {
   display: flex;
   gap: 5px;
+  margin-left: 5px;
+}
+
+.control-group select {
+  width: 100%;
+}
+
+/* Foldable tree view styles */
+.monaco-editor .foldingDecoration {
+  cursor: pointer;
+  background-color: var(--primary-color);
+  opacity: 0.5;
+}
+
+.monaco-editor .foldingDecoration:hover {
+  opacity: 1;
 }
 
 button {

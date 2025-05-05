@@ -485,6 +485,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   function setupEventListeners() {
+    // Get references to UI elements
+    const viewModeSelect = document.getElementById('view-mode');
+    const expandAllBtn = document.getElementById('expand-all');
+    const collapseAllBtn = document.getElementById('collapse-all');
+    const sortJsonBtn = document.getElementById('sort-json');
+    let currentViewMode = 'formatted';
+    
     // Existing event listeners
     prettifyBtn.addEventListener('click', () => {
       const rawJson = jsonEditor.getValue();
@@ -806,6 +813,84 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeThemeEditorBtn) {
       closeThemeEditorBtn.addEventListener('click', () => {
         document.getElementById('theme-editor-modal').classList.remove('active');
+      });
+    }
+    
+    // View mode toggle (formatted vs tree view)
+    if (viewModeSelect) {
+      viewModeSelect.addEventListener('change', () => {
+        if (!currentJson) {
+          return;
+        }
+
+        currentViewMode = viewModeSelect.value;
+
+        if (currentViewMode === 'tree') {
+          // For tree view, we'll create a specialized tree view
+          convertToTreeView();
+        } else {
+          // For formatted view, restore the standard JSON
+          const indent = indentationSelect.value === 'tab' ? '\t' : Number(indentationSelect.value);
+          const formatted = JSON.stringify(currentJson, null, indent);
+          jsonEditor.setValue(formatted);
+        }
+      });
+    }
+
+    // Expand all button handler
+    if (expandAllBtn) {
+      expandAllBtn.addEventListener('click', () => {
+        if (!currentJson) return;
+        if (currentViewMode === 'tree') {
+          // Use Monaco editor's fold actions API to unfold all
+          const editorActions = jsonEditor.getAction('editor.unfoldAll');
+          if (editorActions) {
+            editorActions.run();
+            showToast('Expanded all nodes');
+          }
+        }
+      });
+    }
+
+    // Collapse all button handler
+    if (collapseAllBtn) {
+      collapseAllBtn.addEventListener('click', () => {
+        if (!currentJson) return;
+        if (currentViewMode === 'tree') {
+          // Use Monaco editor's fold actions API to fold all
+          const editorActions = jsonEditor.getAction('editor.foldAll');
+          if (editorActions) {
+            editorActions.run();
+            showToast('Collapsed all nodes');
+          }
+        }
+      });
+    }
+
+    // Sort JSON button handler
+    if (sortJsonBtn) {
+      sortJsonBtn.addEventListener('click', () => {
+        if (!currentJson) return;
+        
+        try {
+          // Sort the JSON object recursively
+          const sortedJson = sortJsonObject(currentJson);
+          currentJson = sortedJson;
+          
+          // Update the editor with sorted JSON
+          const indent = indentationSelect.value === 'tab' ? '\t' : Number(indentationSelect.value);
+          const formatted = JSON.stringify(sortedJson, null, indent);
+          jsonEditor.setValue(formatted);
+          
+          showToast('JSON sorted successfully');
+          
+          // Update view mode if needed
+          if (currentViewMode === 'tree') {
+            convertToTreeView();
+          }
+        } catch (error) {
+          showError(`Error sorting JSON: ${error.message}`);
+        }
       });
     }
     
@@ -1147,5 +1232,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     return code;
+  }
+
+  // Tree view conversion function
+  function convertToTreeView() {
+    if (!currentJson) return;
+    
+    try {
+      // We're using Monaco editor's built-in folding capabilities
+      // No need to change the actual JSON structure - just make sure folding is enabled
+      const indent = indentationSelect.value === 'tab' ? '\t' : Number(indentationSelect.value);
+      const formatted = JSON.stringify(currentJson, null, indent);
+      
+      // Update the editor model with the formatted JSON
+      jsonEditor.setValue(formatted);
+      
+      // Monaco will automatically detect folding regions based on the indentation
+      // We just need to ensure folding is enabled in the editor options
+      jsonEditor.updateOptions({
+        folding: true,
+        foldingStrategy: 'indentation'
+      });
+      
+      // Optionally, fold all initially and let user expand as needed
+      setTimeout(() => {
+        const foldAction = jsonEditor.getAction('editor.foldLevel2');
+        if (foldAction) {
+          foldAction.run();
+        }
+      }, 100);
+      
+      showToast('Tree view enabled. Use expand/collapse buttons or click the gutter markers.');
+    } catch (error) {
+      showError(`Error creating tree view: ${error.message}`);
+      // Fall back to formatted view
+      viewModeSelect.value = 'formatted';
+    }
+  }
+
+  // Function to sort JSON object recursively
+  function sortJsonObject(obj) {
+    // Base case: if not an object or is null, return as is
+    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+      // For arrays, sort each element recursively
+      if (Array.isArray(obj)) {
+        return obj.map(item => {
+          if (item !== null && typeof item === 'object') {
+            return sortJsonObject(item);
+          }
+          return item;
+        });
+      }
+      return obj;
+    }
+    
+    // Get all keys and sort them alphabetically
+    const sortedKeys = Object.keys(obj).sort();
+    
+    // Create a new sorted object
+    const sortedObj = {};
+    sortedKeys.forEach(key => {
+      const value = obj[key];
+      // Recursively sort nested objects
+      if (value !== null && typeof value === 'object') {
+        sortedObj[key] = sortJsonObject(value);
+      } else {
+        sortedObj[key] = value;
+      }
+    });
+    
+    return sortedObj;
   }
 });
