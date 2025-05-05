@@ -1,5 +1,27 @@
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', () => {
+  // Debug logging for UI elements
+  console.log('DOM fully loaded');
+  
+  // Log all important UI elements to verify they exist
+  console.log('Header elements:', {
+    expandAll: document.getElementById('expand-all'),
+    collapseAll: document.getElementById('collapse-all'),
+    sortJson: document.getElementById('sort-json'),
+    breadcrumbHeader: document.getElementById('breadcrumb-display-header'),
+    pathCopyHeader: document.getElementById('path-copy-header'),
+    headerContainer: document.querySelector('.header-container'),
+    breadcrumbContainer: document.querySelector('.breadcrumb-container')
+  });
+  
+  // Check if styles are applied
+  const headerStyles = window.getComputedStyle(document.querySelector('header'));
+  console.log('Header styles:', {
+    display: headerStyles.display,
+    flexDirection: headerStyles.flexDirection,
+    width: headerStyles.width
+  });
+  
   // Session management
   let sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
@@ -29,10 +51,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const pathDisplay = document.getElementById('path-display');
   const statusText = document.getElementById('status-text');
   
+  // Additional debugging - log the buttons we're looking for
+  const expandAllBtn = document.getElementById('expand-all');
+  const collapseAllBtn = document.getElementById('collapse-all');
+  const sortJsonBtn = document.getElementById('sort-json');
+  const viewModeSelect = document.getElementById('view-mode');
+  
+  console.log('Button debug:', {
+    expandAllExists: expandAllBtn !== null,
+    collapseAllExists: collapseAllBtn !== null,
+    sortJsonExists: sortJsonBtn !== null,
+    viewModeExists: viewModeSelect !== null
+  });
+
+  if (expandAllBtn) console.log('Expand All button found:', expandAllBtn.outerHTML);
+  if (collapseAllBtn) console.log('Collapse All button found:', collapseAllBtn.outerHTML);
+  if (sortJsonBtn) console.log('Sort JSON button found:', sortJsonBtn.outerHTML);
+  
   // Global variables
   let jsonEditor;
   let isDarkTheme = false;
   let currentJson = null;
+  let currentViewMode = 'formatted';
   
   // Initialize Monaco Editor
   require.config({

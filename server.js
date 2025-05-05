@@ -40,9 +40,29 @@ app.post('/api/prettify', express.json(), (req, res) => {
   }
 });
 
-// Serve web-index.html for root route
+// Serve web-index.html for root route with debug logging
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'web-index.html'));
+  const filePath = path.join(__dirname, 'web-index.html');
+  console.log('Serving HTML file from:', filePath);
+  
+  // Read the file for debugging
+  const fs = require('fs');
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    console.log('First 500 chars of HTML content:', fileContent.substring(0, 500));
+    
+    // Check if our new controls are present
+    const expandAllBtnCheck = fileContent.includes('id="expand-all"');
+    const breadcrumbCheck = fileContent.includes('breadcrumb-container');
+    console.log('Control presence check:', { 
+      expandAllBtnExists: expandAllBtnCheck,
+      breadcrumbContainerExists: breadcrumbCheck 
+    });
+  } catch (err) {
+    console.error('Error reading HTML file:', err);
+  }
+  
+  res.sendFile(filePath);
 });
 
 // Serve files for specific routes
