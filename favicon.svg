@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <title>JSON Prettifier Favicon</title>
+  <defs>
+    <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="gradient">
+      <stop stop-color="#6366F1" offset="0%"></stop>
+      <stop stop-color="#8B5CF6" offset="50%"></stop>
+      <stop stop-color="#EC4899" offset="100%"></stop>
+    </linearGradient>
+  </defs>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <rect fill="url(#gradient)" x="0" y="0" width="32" height="32" rx="6"></rect>
+    <!-- Brackets representing JSON structure -->
+    <path d="M8,6 L12,6 L12,8 L10,8 L10,24 L12,24 L12,26 L8,26 L8,6 Z" fill="white"></path>
+    <path d="M24,6 L20,6 L20,8 L22,8 L22,24 L20,24 L20,26 L24,26 L24,6 Z" fill="white"></path>
+    <!-- Lines representing JSON content -->
+    <rect fill="white" x="12" y="10" width="8" height="2" rx="1"></rect>
+    <rect fill="white" x="12" y="15" width="10" height="2" rx="1"></rect>
+    <rect fill="white" x="12" y="20" width="6" height="2" rx="1"></rect>
+  </g>
+</svg>
