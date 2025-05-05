@@ -173,6 +173,67 @@ document.addEventListener('DOMContentLoaded', () => {
         pathDisplay.textContent = path ? path : '';
       }
     });
+    
+    // Unescape Strings button handler
+    const unescapeStringsBtn = document.getElementById('unescape-strings');
+    if (unescapeStringsBtn) {
+      unescapeStringsBtn.addEventListener('click', () => {
+        if (!currentJson) return;
+        
+        try {
+          // Create a deep copy of the current JSON
+          const tempJson = JSON.parse(JSON.stringify(currentJson));
+          
+          // Function to recursively process objects and arrays
+          function processNestedStrings(obj) {
+            if (!obj || typeof obj !== 'object') return obj;
+            
+            // Process each property
+            Object.keys(obj).forEach(key => {
+              const value = obj[key];
+              
+              // Check if value is a potentially JSON string (starts and ends with brackets or braces)
+              if (typeof value === 'string' && 
+                  ((value.startsWith('[') && value.endsWith(']')) || 
+                   (value.startsWith('{') && value.endsWith('}'))))
+              {
+                try {
+                  // Try to parse it as JSON
+                  const parsed = JSON.parse(value);
+                  // If successful, replace the string with the parsed object
+                  obj[key] = parsed;
+                  console.log(`Unescaped JSON string in property: ${key}`);
+                } catch (e) {
+                  // Not valid JSON, leave as-is
+                  console.log(`Could not parse property ${key} as JSON: ${e.message}`);
+                }
+              }
+              // Recursively process nested objects and arrays
+              else if (typeof value === 'object' && value !== null) {
+                processNestedStrings(value);
+              }
+            });
+            
+            return obj;
+          }
+          
+          // Process the entire JSON structure
+          const processedJson = processNestedStrings(tempJson);
+          currentJson = processedJson;
+          
+          // Format with selected indentation
+          const indent = indentationSelect.value === 'tab' ? '\t' : Number(indentationSelect.value);
+          const formatted = JSON.stringify(processedJson, null, indent);
+          
+          // Update the editor with processed JSON
+          jsonEditor.setValue(formatted);
+          
+          showToast('Strings unescaped successfully');
+        } catch (error) {
+          showError(`Error while unescaping strings: ${error.message}`);
+        }
+      });
+    }
   }
 
   // Function to handle window resize
