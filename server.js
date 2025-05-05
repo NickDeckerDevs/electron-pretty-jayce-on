@@ -21,8 +21,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '/')));
+// Define routes first, before static file middleware
 
 // JSON prettify API endpoint
 app.post('/api/prettify', express.json(), (req, res) => {
@@ -156,6 +155,9 @@ app.delete('/api/documents/:id', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Serve static files after routes are defined
+app.use(express.static(path.join(__dirname, '/')));
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`JSON Prettifier server running at http://0.0.0.0:${port}`);
