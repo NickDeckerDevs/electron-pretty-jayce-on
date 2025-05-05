@@ -14,43 +14,65 @@
   <header>
     <h1>JSON Prettifier</h1>
     <div class="controls">
-      <button id="prettify" class="primary-btn">Prettify</button>
-      <button id="clear" class="secondary-btn">Clear</button>
-      <button id="copy" class="secondary-btn">Copy</button>
-      <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
-      
-      <div class="control-group">
-        <label>Indentation:</label>
-        <select id="indentation" title="Indentation">
-          <option value="2">2 Spaces</option>
-          <option value="4">4 Spaces</option>
-          <option value="tab">Tab</option>
-        </select>
+      <div class="control-row main-controls">
+        <button id="prettify" class="primary-btn">Prettify</button>
+        <button id="clear" class="secondary-btn">Clear</button>
+        <button id="copy" class="secondary-btn">Copy</button>
+        <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
       </div>
       
-      <div class="control-group">
-        <label>View Mode:</label>
-        <select id="view-mode" title="View Mode">
-          <option value="formatted">Formatted</option>
-          <option value="tree">Tree View</option>
-        </select>
+      <div class="control-row tree-controls">
+        <div class="control-section">
+          <h3>JSON View Controls</h3>
+          <div class="control-group-inline">
+            <button id="expand-all" class="action-btn"><i class="fas fa-expand-alt"></i> Expand All</button>
+            <button id="collapse-all" class="action-btn"><i class="fas fa-compress-alt"></i> Collapse All</button>
+            <button id="sort-json" class="action-btn"><i class="fas fa-sort-alpha-down"></i> Sort Properties</button>
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <h3>View Options</h3>
+          <div class="control-group-inline">
+            <div class="control-group">
+              <label>Indentation:</label>
+              <select id="indentation" title="Indentation">
+                <option value="2">2 Spaces</option>
+                <option value="4">4 Spaces</option>
+                <option value="tab">Tab</option>
+              </select>
+            </div>
+            
+            <div class="control-group">
+              <label>View Mode:</label>
+              <select id="view-mode" title="View Mode">
+                <option value="formatted">Formatted</option>
+                <option value="tree">Tree View</option>
+              </select>
+            </div>
+            
+            <div class="theme-toggle">
+              <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="theme-slider"></span>
+                <span class="theme-label">Dark Mode</span>
+              </label>
+            </div>
+            
+            <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
+          </div>
+        </div>
       </div>
       
-      <div class="control-buttons">
-        <button id="expand-all" class="icon-btn" title="Expand All"><i class="fas fa-expand-alt"></i></button>
-        <button id="collapse-all" class="icon-btn" title="Collapse All"><i class="fas fa-compress-alt"></i></button>
-        <button id="sort-json" class="icon-btn" title="Sort Properties"><i class="fas fa-sort-alpha-down"></i></button>
+      <div class="control-row breadcrumb-row">
+        <div class="current-location">
+          <span>Current Location:</span>
+          <div class="breadcrumb-wrapper-header">
+            <div id="breadcrumb-display-header" class="breadcrumb-display"></div>
+            <button id="path-copy-header" class="action-btn" title="Copy Path"><i class="fas fa-copy"></i> Copy Path</button>
+          </div>
+        </div>
       </div>
-      
-      <div class="theme-toggle">
-        <label class="theme-switch">
-          <input type="checkbox" id="theme-toggle">
-          <span class="theme-slider"></span>
-          <span class="theme-label">Dark Mode</span>
-        </label>
-      </div>
-      
-      <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
     </div>
   </header>
 

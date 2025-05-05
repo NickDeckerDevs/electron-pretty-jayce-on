@@ -76,6 +76,46 @@ h1 {
   gap: 10px;
 }
 
+.control-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
+  gap: 15px;
+  align-items: center;
+}
+
+.main-controls {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.tree-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-section h3 {
+  font-size: 1rem;
+  color: var(--primary-color);
+  margin: 0 0 5px 0;
+}
+
+.control-group-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 .control-group {
   display: flex;
   flex-direction: column;
@@ -95,6 +135,56 @@ h1 {
 
 .control-group select {
   width: 100%;
+}
+
+.action-btn {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.action-btn:hover {
+  background-color: var(--button-hover);
+}
+
+.action-btn i {
+  font-size: 0.9em;
+}
+
+.breadcrumb-row {
+  padding: 10px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.current-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.current-location span {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.breadcrumb-wrapper-header {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: 5px 0;
 }
 
 /* Foldable tree view styles */

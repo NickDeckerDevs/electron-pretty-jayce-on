@@ -586,19 +586,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
-    // Path copy button handler
-    const pathCopyBtn = document.getElementById('path-copy');
-    if (pathCopyBtn) {
-      pathCopyBtn.addEventListener('click', () => {
-        const path = pathCopyBtn.dataset.path;
-        if (path) {
-          const accessCode = generateAccessCode(path);
-          navigator.clipboard.writeText(accessCode)
-            .then(() => showToast(`Copied to clipboard: ${accessCode}`))
-            .catch(err => showError('Failed to copy path: ' + err));
-        }
-      });
-    }
+    // Path copy button handlers (both in status bar and header)
+    const setupPathCopyButton = (buttonId) => {
+      const pathCopyBtn = document.getElementById(buttonId);
+      if (pathCopyBtn) {
+        pathCopyBtn.addEventListener('click', () => {
+          const path = pathCopyBtn.dataset.path;
+          if (path) {
+            const accessCode = generateAccessCode(path);
+            navigator.clipboard.writeText(accessCode)
+              .then(() => showToast(`Copied to clipboard: ${accessCode}`))
+              .catch(err => showError('Failed to copy path: ' + err));
+          }
+        });
+      }
+    };
+    
+    // Setup both copy buttons
+    setupPathCopyButton('path-copy');
+    setupPathCopyButton('path-copy-header');
     
     // New event listeners for the additional features
     
@@ -1078,12 +1084,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Helper function to generate breadcrumb elements
   function updateBreadcrumbs(jsonPath) {
     const breadcrumbDisplay = document.getElementById('breadcrumb-display');
+    const breadcrumbDisplayHeader = document.getElementById('breadcrumb-display-header');
     if (!breadcrumbDisplay) return;
     
+    // Clear both breadcrumb displays
     breadcrumbDisplay.innerHTML = '';
+    if (breadcrumbDisplayHeader) {
+      breadcrumbDisplayHeader.innerHTML = '';
+    }
     
     if (!jsonPath) {
-      breadcrumbDisplay.innerHTML = '<div class="empty-breadcrumb">No path selected</div>';
+      const emptyMessage = '<div class="empty-breadcrumb">No path selected</div>';
+      breadcrumbDisplay.innerHTML = emptyMessage;
+      if (breadcrumbDisplayHeader) {
+        breadcrumbDisplayHeader.innerHTML = emptyMessage;
+      }
       return;
     }
     
@@ -1160,36 +1175,49 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    // Create the breadcrumb elements
-    segments.forEach((segment, index) => {
-      const breadcrumbItem = document.createElement('div');
-      breadcrumbItem.className = 'breadcrumb-item';
-      breadcrumbItem.dataset.path = segment.path;
-      breadcrumbItem.textContent = segment.text;
-      
-      // Add click event to navigate to that path
-      breadcrumbItem.addEventListener('click', () => {
-        // Implement navigation logic here
-        // This could highlight the position in the editor
-        // or scroll to the relevant section
-        navigateToJsonPath(segment.path);
+    // Create the breadcrumb elements for both status bar and header
+    const createBreadcrumbElements = (container) => {
+      segments.forEach((segment, index) => {
+        const breadcrumbItem = document.createElement('div');
+        breadcrumbItem.className = 'breadcrumb-item';
+        breadcrumbItem.dataset.path = segment.path;
+        breadcrumbItem.textContent = segment.text;
+        
+        // Add click event to navigate to that path
+        breadcrumbItem.addEventListener('click', () => {
+          navigateToJsonPath(segment.path);
+        });
+        
+        container.appendChild(breadcrumbItem);
+        
+        // Add separator if not the last item
+        if (index < segments.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'breadcrumb-separator';
+          separator.textContent = '>';
+          container.appendChild(separator);
+        }
       });
-      
-      breadcrumbDisplay.appendChild(breadcrumbItem);
-      
-      // Add separator if not the last item
-      if (index < segments.length - 1) {
-        const separator = document.createElement('span');
-        separator.className = 'breadcrumb-separator';
-        separator.textContent = '>';
-        breadcrumbDisplay.appendChild(separator);
-      }
-    });
+    };
     
-    // Add copy button event
+    // Create breadcrumbs in the status bar
+    createBreadcrumbElements(breadcrumbDisplay);
+    
+    // Create breadcrumbs in the header if it exists
+    if (breadcrumbDisplayHeader) {
+      createBreadcrumbElements(breadcrumbDisplayHeader);
+    }
+    
+    // Add copy button event in status bar
     const pathCopyBtn = document.getElementById('path-copy');
     if (pathCopyBtn) {
       pathCopyBtn.dataset.path = jsonPath;
+    }
+    
+    // Add copy button event in header
+    const pathCopyBtnHeader = document.getElementById('path-copy-header');
+    if (pathCopyBtnHeader) {
+      pathCopyBtnHeader.dataset.path = jsonPath;
     }
   }
   
