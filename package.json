@@ -1,32 +1,62 @@
 {
-  "name": "workspace",
-  "version": "1.0.0",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron-forge start",
-    "build": "electron-forge make",
-    "build:win": "electron-forge make --platform win32",
-    "build:mac": "electron-forge make --platform darwin"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@neondatabase/serverless": "^1.0.0",
-    "drizzle-kit": "^0.31.1",
-    "drizzle-orm": "^0.43.1",
-    "express": "^5.1.0",
-    "pg": "^8.15.6",
-    "svgexport": "^0.4.2",
-    "ws": "^8.18.2"
-  },
-  "devDependencies": {
-    "@electron-forge/cli": "^7.11.1",
-    "@electron-forge/maker-dmg": "^7.11.1",
-    "@electron-forge/maker-squirrel": "^7.11.1",
-    "@playwright/test": "^1.60.0",
-    "electron": "^36.2.0"
-  }
+    "name": "pretty-jayce-on",
+    "version": "1.0.0",
+    "description": "JSON Prettifier desktop app",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "electron-forge start",
+        "build": "electron-forge make",
+        "build:win": "electron-forge make --platform win32",
+        "build:mac": "electron-forge make --platform darwin"
+    },
+    "keywords": [],
+    "author": "nick decker",
+    "license": "ISC",
+    "build": {
+        "appId": "com.impulsecreative.pretty-jayce-on",
+        "productName": "JSON Prettifier",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "index.html",
+            "renderer.js",
+            "storage.js",
+            "styles.css",
+            "favicon.ico",
+            "favicon.svg",
+            "generated-icon.png",
+            "node_modules/monaco-editor/min/vs/**/*",
+            "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+            "node_modules/@fortawesome/fontawesome-free/webfonts/**/*"
+        ],
+        "mac": {
+            "category": "public.app-category.developer-tools",
+            "icon": "generated-icon.png"
+        },
+        "win": {
+            "icon": "generated-icon.png"
+        }
+    },
+    "dependencies": {
+        "@neondatabase/serverless": "^1.0.0",
+        "drizzle-kit": "^0.31.1",
+        "drizzle-orm": "^0.43.1",
+        "express": "^5.1.0",
+        "pg": "^8.15.6",
+        "svgexport": "^0.4.2",
+        "ws": "^8.18.2"
+    },
+    "devDependencies": {
+        "@electron-forge/cli": "^7.11.1",
+        "@electron-forge/maker-dmg": "^7.11.1",
+        "@electron-forge/maker-squirrel": "^7.11.1",
+        "@playwright/test": "^1.60.0",
+        "@fortawesome/fontawesome-free": "^6.4.0",
+        "monaco-editor": "^0.33.0",
+        "electron": "^36.2.0"
+    }
 }
