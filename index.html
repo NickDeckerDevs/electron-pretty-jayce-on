@@ -1,3 +1,13 @@
+<!--
+5/1/2026 - nick decker
+ADDED
+- storage.js script tag for localStorage persistence layer
+- #toggle-sidebar button in header controls to open/close saved documents sidebar
+
+CHANGED
+- Monaco Editor now loads from local node_modules instead of CDN
+- Font Awesome now loads from local node_modules instead of CDN
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,10 +17,10 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <link rel="stylesheet" href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+
   <!-- Monaco Editor -->
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
+  <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
 </head>
 <body>
   <header>
@@ -22,7 +32,8 @@
         <button id="clear" class="secondary-btn">Clear</button>
         <button id="copy" class="secondary-btn">Copy</button>
         <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
-        
+        <button id="toggle-sidebar" class="secondary-btn"><i class="fas fa-folder-open"></i> Saved</button>
+
         <!-- Tree View Controls - Moved up to main controls -->
         <button id="expand-all" class="action-btn"><i class="fas fa-expand-alt"></i> Expand All</button>
         <button id="collapse-all" class="action-btn"><i class="fas fa-compress-alt"></i> Collapse All</button>
@@ -225,6 +236,7 @@
     <div class="toast-message" id="toast-message"></div>
   </div>
 
-  <script src="web-renderer.js"></script>
+  <script src="storage.js"></script>
+  <script src="renderer.js"></script>
 </body>
 </html>
