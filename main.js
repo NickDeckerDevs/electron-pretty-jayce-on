@@ -5,19 +5,94 @@ ADDED
 - IPC handler dialog:openFile — native open dialog returning JSON file contents
 - IPC handler dialog:saveFile — native save dialog writing JSON to disk
 - IPC handler app:getVersion — returns app version to renderer
+- clipboard import for clipboard relay IPC handler
+- pendingPayload + parseProtocolUrl for custom protocol handling
+- json-prettifier:// protocol registration (cross-OS)
+- Single-instance lock with second-instance handler (Windows/Linux hot injection)
+- open-url handler for macOS hot injection
+- IPC handler json:getPendingPayload — renderer retrieves cold-start payload
+- IPC handler clipboard:read — renderer reads clipboard for large JSON relay
 
 CHANGED
 - App icon reference updated to generated-icon.png (fixed broken path)
+- app.whenReady() moved inside gotTheLock else block; checks process.argv for cold-start protocol URL
 */
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-// Keep a global reference of the window object to prevent garbage collection
+let pendingPayload = null;
 let mainWindow;
 
+function parseProtocolUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const source = parsed.searchParams.get('source');
+    if (source === 'clipboard') return { source: 'clipboard', data: null };
+    const data = parsed.searchParams.get('data');
+    if (data) return { source: 'url', data: decodeURIComponent(data) };
+  } catch (e) {
+    console.error('Failed to parse protocol URL:', e);
+  }
+  return null;
+}
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('json-prettifier', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('json-prettifier');
+}
+
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine) => {
+    const url = commandLine.find(arg => arg.startsWith('json-prettifier://'));
+    if (url) {
+      const payload = parseProtocolUrl(url);
+      if (payload) {
+        if (mainWindow) {
+          mainWindow.webContents.send('json:received', payload);
+        } else {
+          pendingPayload = payload;
+        }
+      }
+    }
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(() => {
+    const protocolUrl = process.argv.find(arg => arg.startsWith('json-prettifier://'));
+    if (protocolUrl) {
+      pendingPayload = parseProtocolUrl(protocolUrl);
+    }
+
+    createWindow();
+    app.on('activate', () => {
+      if (mainWindow === null) createWindow();
+    });
+  });
+}
+
+// macOS: open-url can fire before app.whenReady()
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  const payload = parseProtocolUrl(url);
+  if (!payload) return;
+  if (mainWindow) {
+    mainWindow.webContents.send('json:received', payload);
+  } else {
+    pendingPayload = payload;
+  }
+});
+
 function createWindow() {
-  // Create the browser window
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -32,18 +107,14 @@ function createWindow() {
     icon: path.join(__dirname, 'generated-icon.png')
   });
 
-  // Load the index.html of the app
   mainWindow.loadFile('index.html');
 
-  // Open DevTools in development environment
   // mainWindow.webContents.openDevTools();
 
-  // Emitted when the window is closed
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // Create application menu
   const template = [
     {
       label: 'File',
@@ -110,22 +181,10 @@ function createWindow() {
   Menu.setApplicationMenu(menu);
 }
 
-// This method will be called when Electron has finished initialization
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on('activate', () => {
-    // On macOS it's common to re-create a window when the dock icon is clicked
-    if (mainWindow === null) createWindow();
-  });
-});
-
-// Quit when all windows are closed, except on macOS
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// IPC handlers
 ipcMain.handle('app:getVersion', () => app.getVersion());
 
 ipcMain.handle('dialog:openFile', async () => {
@@ -146,3 +205,11 @@ ipcMain.handle('dialog:saveFile', async (event, content) => {
   fs.writeFileSync(filePath, content, 'utf8');
   return true;
 });
+
+ipcMain.handle('json:getPendingPayload', () => {
+  const payload = pendingPayload;
+  pendingPayload = null;
+  return payload;
+});
+
+ipcMain.handle('clipboard:read', () => clipboard.readText());

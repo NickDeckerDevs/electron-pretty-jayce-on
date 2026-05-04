@@ -14,4 +14,9 @@ contextBridge.exposeInMainWorld('electron', {
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
   saveFile: (content) => ipcRenderer.invoke('dialog:saveFile', content),
   getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+  getPendingPayload: () => ipcRenderer.invoke('json:getPendingPayload'),
+  readClipboard: () => ipcRenderer.invoke('clipboard:read'),
+  onJsonReceived: (callback) => {
+    ipcRenderer.on('json:received', (_event, payload) => callback(payload));
+  },
 });

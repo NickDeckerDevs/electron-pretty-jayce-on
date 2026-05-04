@@ -10,233 +10,273 @@ CHANGED
 -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JSON Prettifier</title>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>JSON Prettifier</title>
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet"
+            href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css">
 
-  <!-- Monaco Editor -->
-  <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
-</head>
-<body>
-  <header>
-    <div class="header-container">
-      <h1 class="app-title">JSON Prettifier</h1>
-      <div class="controls">
-        <!-- Main Controls -->
-        <button id="prettify" class="primary-btn">Prettify</button>
-        <button id="clear" class="secondary-btn">Clear</button>
-        <button id="copy" class="secondary-btn">Copy</button>
-        <button id="save-document" class="secondary-btn"><i class="fas fa-save"></i> Save</button>
-        <button id="toggle-sidebar" class="secondary-btn"><i class="fas fa-folder-open"></i> Saved</button>
+        <!-- Monaco Editor -->
+        <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+    </head>
+    <body>
+        <header>
+            <div class="header__container">
+                <h1 class="header__app-title">JSON Prettifier</h1>
 
-        <!-- Tree View Controls - Moved up to main controls -->
-        <button id="expand-all" class="action-btn"><i class="fas fa-expand-alt"></i> Expand All</button>
-        <button id="collapse-all" class="action-btn"><i class="fas fa-compress-alt"></i> Collapse All</button>
-        <button id="sort-json" class="action-btn"><i class="fas fa-sort-alpha-down"></i> Sort Properties</button>
-        <button id="unescape-strings" class="action-btn"><i class="fas fa-indent"></i> Unescape Strings</button>
-        
-        <!-- Indentation and View Mode -->
-        <div class="control-group">
-          <label>Indentation:</label>
-          <select id="indentation" title="Indentation">
-            <option value="2">2 Spaces</option>
-            <option value="4">4 Spaces</option>
-            <option value="tab">Tab</option>
-          </select>
-        </div>
-        
-        <div class="control-group">
-          <label>View Mode:</label>
-          <select id="view-mode" title="View Mode">
-            <option value="formatted">Formatted</option>
-            <option value="tree">Tree View</option>
-          </select>
-        </div>
-        
-        <div class="theme-toggle">
-          <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="theme-slider"></span>
-            <span class="theme-label">Dark Mode</span>
-          </label>
-        </div>
-        
-        <button id="settings-btn" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></button>
-      </div>
-    </div>
-    
-    <!-- Breadcrumb moved to its own row -->
-    <div class="breadcrumb-container">
-      <div class="current-location">
-        <span>Current Location:</span>
-        <div class="breadcrumb-wrapper-header">
-          <div id="breadcrumb-display-header" class="breadcrumb-display"></div>
-          <button id="path-copy-header" class="action-btn" title="Copy Path"><i class="fas fa-copy"></i> Copy Path</button>
-        </div>
-      </div>
-    </div>
-  </header>
+                <!-- Row 1: Editor controls -->
+                <div class="header__action-row header__action-row--one">
+                    <div class="header__control-group">
+                        <label>Indentation:</label>
+                        <select id="indentation" title="Indentation">
+                            <option value="2">2 Spaces</option>
+                            <option value="4">4 Spaces</option>
+                            <option value="tab">Tab</option>
+                        </select>
+                    </div>
+                    <div class="header__control-group">
+                        <label>View Mode:</label>
+                        <select id="view-mode" title="View Mode">
+                            <option value="formatted">Formatted</option>
+                            <option value="tree">Tree View</option>
+                        </select>
+                    </div>
+                    <button id="expand-all" class="btn--action"><i
+                            class="fas fa-expand-alt"></i> Expand All</button>
+                    <button id="collapse-all" class="btn--action"><i
+                            class="fas fa-compress-alt"></i> Collapse All</button>
+                    <button id="sort-json" class="btn--action"><i
+                            class="fas fa-sort-alpha-down"></i> Sort
+                        Properties</button>
+                    <button id="unescape-strings" class="btn--action"><i
+                            class="fas fa-indent"></i> Unescape Strings</button>
+                </div>
 
-  <main>
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h3>Saved Documents</h3>
-        <button id="close-sidebar" class="icon-btn"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="sidebar-content">
-        <div id="documents-list" class="documents-list">
-          <!-- Saved documents will be loaded here -->
-          <div class="empty-state">No saved documents</div>
-        </div>
-      </div>
-    </div>
+                <!-- Row 2: Document actions -->
+                <div class="header__action-row header__action-row--two">
+                    <div class="actions-buttons">
+                        <button id="toggle-sidebar" class="btn--secondary"><i
+                                class="fas fa-folder-open"></i> History</button>
+                        <button id="prettify" class="btn--primary">Prettify</button>
+                        <button id="clear" class="btn--secondary">Clear</button>
+                        <button id="copy" class="btn--secondary">Copy</button>
+                        <button id="save-document" class="btn--secondary"><i
+                                class="fas fa-save"></i> Save To History</button>
+                    </div>
+                    <div class="theme-toggle">
+                        <span class="theme-toggle__label">Dark Mode</span>
+                        <label class="theme-toggle__switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="theme-toggle__slider"></span>
+                        </label>
+                    </div>
+                    <div class="header__settings-group">
+                        <span>Settings</span>
+                        <button id="settings-btn" class="btn--icon"
+                            title="Settings"><i class="fas fa-cog"></i></button>
+                    </div>
+                </div>
 
-    <div class="editor-container">
-      <div id="json-editor" class="editor"></div>
-    </div>
+                <!-- Row 3: Theme, settings, path -->
+                <div class="header__action-row header__action-row--three">
+                    
+                    <div class="header__path-group">
+                        <input id="variable-name"
+                            class="header__variable-name-input" value="data">
+                        <span class="header__path-label">Path:</span>
+                        <div class="header__breadcrumb-wrapper">
+                            <div id="breadcrumb-display-header"
+                                class="breadcrumb__display"></div>
+                            <div id="array-accessors"
+                                class="header__array-accessors"></div>
+                        </div>
+                        <button id="path-copy-header" class="btn--action"
+                            title="Copy Path"><i class="fas fa-copy"></i> Copy
+                            Path</button>
+                    </div>
+                </div>
+            </div>
 
-    <div class="status-bar">
-      <div id="error-message" class="error-message"></div>
-      <div class="breadcrumb-wrapper">
-        <div id="breadcrumb-display" class="breadcrumb-display"></div>
-      </div>
-      <div id="path-display" class="path-display"></div>
-      <div id="path-copy" class="path-copy" title="Copy path"><i class="fas fa-copy"></i></div>
-      <div id="status-text" class="status-text">Ready</div>
-    </div>
-  </main>
+        </header>
 
-  <!-- Save Document Modal -->
-  <div id="save-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Save Document</h3>
-        <button id="close-save-modal" class="icon-btn"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="document-title">Title:</label>
-          <input type="text" id="document-title" placeholder="Enter a title for your document">
-        </div>
-        <div class="form-group">
-          <label for="document-tags">Tags (comma separated):</label>
-          <input type="text" id="document-tags" placeholder="tag1, tag2, tag3">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="confirm-save" class="primary-btn">Save</button>
-        <button id="cancel-save" class="secondary-btn">Cancel</button>
-      </div>
-    </div>
-  </div>
+        <main>
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar__header">
+                    <h3>Saved Documents</h3>
+                    <button id="close-sidebar" class="btn--icon"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="sidebar__content">
+                    <div id="documents-list" class="sidebar__documents-list">
+                        <!-- Saved documents will be loaded here -->
+                        <div class="empty-state">No saved documents</div>
+                    </div>
+                </div>
+            </div>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Settings</h3>
-        <button id="close-settings-modal" class="icon-btn"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="settings-section">
-          <h4>Editor Preferences</h4>
-          <div class="form-group">
-            <label for="default-indentation">Default Indentation:</label>
-            <select id="default-indentation">
-              <option value="2">2 Spaces</option>
-              <option value="4">4 Spaces</option>
-              <option value="tab">Tab</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="default-theme">Default Theme:</label>
-            <select id="default-theme">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h4>Custom Theme</h4>
-          <div class="custom-themes-list" id="custom-themes-list">
-            <!-- Custom themes will appear here -->
-          </div>
-          <div class="form-group">
-            <button id="create-theme-btn" class="secondary-btn">Create New Theme</button>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="save-settings" class="primary-btn">Save Settings</button>
-      </div>
-    </div>
-  </div>
+            <div class="editor__container">
+                <div id="json-editor" class="editor__content"></div>
+            </div>
+        </main>
+        <footer>
+            <div class="footer__status-bar">
+                <div id="error-message" class="footer__error"></div>
+                <div class="footer__breadcrumb-wrapper">
+                    <div id="breadcrumb-display" class="breadcrumb__display">
+                    </div>
+                </div>
+                <div id="path-display" class="footer__path-display"></div>
+                <div id="path-copy" class="footer__path-copy" title="Copy path">
+                    <i class="fas fa-copy"></i>
+                </div>
+                <div id="status-text" class="footer__status-text">Ready</div>
+            </div>
+        </footer>
 
-  <!-- Theme Editor Modal -->
-  <div id="theme-editor-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Theme Editor</h3>
-        <button id="close-theme-editor" class="icon-btn"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="theme-name">Theme Name:</label>
-          <input type="text" id="theme-name" placeholder="My Custom Theme">
+        <!-- Save Document Modal -->
+        <div id="save-modal" class="modal">
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h3>Save Document</h3>
+                    <button id="close-save-modal" class="btn--icon"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="modal__body">
+                    <div class="form__group">
+                        <label for="document-title">Title:</label>
+                        <input type="text" id="document-title"
+                            placeholder="Enter a title for your document">
+                    </div>
+                    <div class="form__group">
+                        <label for="document-tags">Tags (comma
+                            separated):</label>
+                        <input type="text" id="document-tags"
+                            placeholder="tag1, tag2, tag3">
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button id="confirm-save" class="btn--primary">Save</button>
+                    <button id="cancel-save"
+                        class="btn--secondary">Cancel</button>
+                </div>
+            </div>
         </div>
-        <div class="theme-colors">
-          <div class="color-picker">
-            <label for="theme-background">Background:</label>
-            <input type="color" id="theme-background">
-          </div>
-          <div class="color-picker">
-            <label for="theme-text">Text:</label>
-            <input type="color" id="theme-text">
-          </div>
-          <div class="color-picker">
-            <label for="theme-string">Strings:</label>
-            <input type="color" id="theme-string">
-          </div>
-          <div class="color-picker">
-            <label for="theme-number">Numbers:</label>
-            <input type="color" id="theme-number">
-          </div>
-          <div class="color-picker">
-            <label for="theme-property">Properties:</label>
-            <input type="color" id="theme-property">
-          </div>
-          <div class="color-picker">
-            <label for="theme-boolean">Booleans/null:</label>
-            <input type="color" id="theme-boolean">
-          </div>
-        </div>
-        <div class="theme-preview">
-          <h4>Preview:</h4>
-          <pre id="theme-preview-code" class="theme-preview-code">{
-  "name": "Sample Object",
-  "active": true,
-  "count": 42,
-  "items": ["string", null, false]
-}</pre>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="save-theme" class="primary-btn">Save Theme</button>
-        <button id="cancel-theme" class="secondary-btn">Cancel</button>
-      </div>
-    </div>
-  </div>
 
-  <div class="toast" id="toast">
-    <div class="toast-message" id="toast-message"></div>
-  </div>
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal">
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h3>Editor Preferences</h3>
+                    <button id="close-settings-modal" class="btn--icon"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="modal__body">
+                    <div class="settings__section">
+                        <div class="form__group">
+                            <label for="default-indentation">Default
+                                Indentation:</label>
+                            <select id="default-indentation">
+                                <option value="2">2 Spaces</option>
+                                <option value="4">4 Spaces</option>
+                                <option value="tab">Tab</option>
+                            </select>
+                        </div>
+                        <div class="form__group">
+                            <label for="default-theme">Default Theme:</label>
+                            <select id="default-theme">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings__section">
+                        <h4>Custom Theme</h4>
+                        <div class="custom-themes__list" id="custom-themes-list">
+                            <!-- Custom themes will appear here -->
+                        </div>
+                        <div class="form__group">
+                            <button id="create-theme-btn"
+                                class="btn--secondary">Create New Theme</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button id="save-settings" class="btn--primary">Save
+                        Settings</button>
+                </div>
+            </div>
+        </div>
 
-  <script src="storage.js"></script>
-  <script src="renderer.js"></script>
-</body>
+        <!-- Theme Editor Modal -->
+        <div id="theme-editor-modal" class="modal">
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h3>Theme Editor</h3>
+                    <button id="close-theme-editor" class="btn--icon"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="modal__body">
+                    <div class="form__group">
+                        <label for="theme-name">Theme Name:</label>
+                        <input type="text" id="theme-name"
+                            placeholder="My Custom Theme">
+                    </div>
+                    <div class="theme-editor__colors">
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-background">Background:</label>
+                            <input type="color" id="theme-background">
+                        </div>
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-text">Text:</label>
+                            <input type="color" id="theme-text">
+                        </div>
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-string">Strings:</label>
+                            <input type="color" id="theme-string">
+                        </div>
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-number">Numbers:</label>
+                            <input type="color" id="theme-number">
+                        </div>
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-property">Properties:</label>
+                            <input type="color" id="theme-property">
+                        </div>
+                        <div class="theme-editor__color-picker">
+                            <label for="theme-boolean">Booleans/null:</label>
+                            <input type="color" id="theme-boolean">
+                        </div>
+                    </div>
+                    <div class="theme-editor__preview">
+                        <h4>Preview:</h4>
+                        <pre id="theme-preview-code"
+                            class="theme-editor__preview-code">{
+                                "name": "Sample Object",
+                                "active": true,
+                                "count": 42,
+                                "items": ["string", null, false]
+                            }
+                        </pre>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button id="save-theme" class="btn--primary">Save
+                        Theme</button>
+                    <button id="cancel-theme"
+                        class="btn--secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast">
+            <div class="toast__message" id="toast-message"></div>
+        </div>
+
+        <script src="storage.js"></script>
+        <script src="renderer.js"></script>
+    </body>
 </html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test: Send Large JSON to Pretty Jayce On</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    #status { margin-top: 1rem; color: #555; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h2>Large JSON Test (clipboard relay)</h2>
+  <p>Writes ~50KB of JSON to the clipboard, then triggers the app to read it.</p>
+  <p><strong>Note:</strong> <code>navigator.clipboard</code> requires HTTPS or localhost. Open via <code>npx serve .</code> rather than double-clicking the file.</p>
+  <button onclick="sendLargeJson()">Send Large JSON (via clipboard)</button>
+  <div id="status"></div>
+  <script>
+    async function sendLargeJson() {
+      const status = document.getElementById('status');
+
+      const largeJson = JSON.stringify({
+        "dataset": Array.from({ length: 200 }, (_, i) => ({
+          "id": i + 1,
+          "name": `Record ${i + 1}`,
+          "value": parseFloat((Math.random() * 1000).toFixed(4)),
+          "active": i % 2 === 0,
+          "tags": [`tag-${i % 10}`, `category-${i % 5}`, `group-${i % 3}`],
+          "metadata": {
+            "createdAt": new Date(Date.now() - i * 86400000).toISOString(),
+            "updatedAt": new Date().toISOString(),
+            "version": "2.0",
+            "checksum": Math.random().toString(36).substring(2, 10)
+          }
+        }))
+      }, null, 2);
+
+      try {
+        status.textContent = 'Writing JSON to clipboard…';
+        await navigator.clipboard.writeText(largeJson);
+        status.textContent = `Copied ${(largeJson.length / 1024).toFixed(1)}KB to clipboard. Opening Pretty Jayce On…`;
+        setTimeout(() => {
+          window.location.href = 'json-prettifier://send?source=clipboard';
+        }, 300);
+      } catch (err) {
+        status.textContent = `Clipboard access denied: ${err.message}. Try running from a local server (not file://).`;
+      }
+    }
+  </script>
+</body>
+</html>

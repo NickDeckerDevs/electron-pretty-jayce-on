@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test: Send Small JSON to Pretty Jayce On</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    pre { background: #f0f0f0; padding: 1rem; border-radius: 4px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h2>Small JSON Test</h2>
+  <p>Sends a ~200-byte payload directly via URL encoding.</p>
+  <button onclick="sendSmallJson()">Send Small JSON to Pretty Jayce On</button>
+  <pre id="preview"></pre>
+  <script>
+    function sendSmallJson() {
+      const json = {
+        "name": "Test Payload",
+        "version": "1.0",
+        "active": true,
+        "count": 42,
+        "items": ["alpha", "beta", "gamma"],
+        "nested": { "key": "value", "flag": false }
+      };
+      const encoded = encodeURIComponent(JSON.stringify(json));
+      document.getElementById('preview').textContent = JSON.stringify(json, null, 2);
+      window.location.href = `json-prettifier://send?data=${encoded}`;
+    }
+  </script>
+</body>
+</html>
