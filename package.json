@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron-forge start",
+    "build": "electron-forge make",
+    "build:win": "electron-forge make --platform win32",
+    "build:mac": "electron-forge make --platform darwin"
   },
   "keywords": [],
   "author": "",
@@ -13,10 +17,16 @@
     "@neondatabase/serverless": "^1.0.0",
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.43.1",
-    "electron": "^36.1.0",
     "express": "^5.1.0",
     "pg": "^8.15.6",
     "svgexport": "^0.4.2",
     "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-dmg": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@playwright/test": "^1.60.0",
+    "electron": "^36.2.0"
   }
 }
