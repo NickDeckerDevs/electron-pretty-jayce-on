@@ -1,3 +1,21 @@
+/*
+5/7/2026 - nick decker
+ADDED
+- Full BEM rename pass across ~40 selectors (see index.html changelog for the full list)
+- .header__action-row, .header__action-row--one/--two layout rules (two-row header after Task 10)
+- .header__path-group, .header__path-label, .header__variable-name-input (transparent inline input + auto-width)
+- .header__settings-group, .header__array-accessors
+- .accessor-chip and .accessor-chip__copy — inline pill styling for array accessor patterns
+- .custom-themes__item--active — active-theme highlight in settings
+- footer { height: var(--status-bar-height) } — status bar height moved off .status-bar onto the <footer> element
+- Defensive Monaco reset at end of file: .monaco-editor .controls, .monaco-editor input { all: revert } — prevents global rules from leaking into Monaco's find widget
+
+CHANGED
+- .toast moved from bottom-right to top-right (top: 20px instead of bottom: 20px)
+- .header__control-group (was .control-group) now flex-row with 10px gap and white-space: nowrap labels
+- Removed width: 100% from control-group selects (no longer needed in row layout)
+*/
+
 :root {
   --primary-color: #007bff;
   --secondary-color: #6c757d;
@@ -69,10 +87,24 @@ header {
 }
 
 .header__app-title {
-  width: 100%;
   font-size: 1.1rem;
-  margin-bottom: 10px;
   color: var(--primary-color);
+  white-space: nowrap;
+}
+
+.header__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.header__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 h1 {
@@ -89,21 +121,23 @@ h1 {
   border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
 }
-.actions-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-.header__action-row.header__action-row--two{
+.header__path-area {
   display: flex;
-  align-items: space-between;
-
- 
+  flex-direction: column;
+  width: 100%;
 }
 
-.header__action-row--three {
-  justify-content: flex-start;
+.header__array-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease, padding 0.2s ease;
+  background: var(--header-bg);
+}
+
+.header__path-area:hover .header__array-panel.has-content {
+  max-height: 60px;
+  padding: 4px 0;
+  border-top: 1px solid var(--border-color);
 }
 
 .header__path-group {
@@ -120,12 +154,49 @@ h1 {
   white-space: nowrap;
 }
 
-.header__settings-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85rem;
+/* Right sidebar */
+.sidebar--right {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
+
+.sidebar__section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--secondary-color);
+  margin: 16px 0 6px;
+}
+
+.sidebar__section-label:first-child {
+  margin-top: 0;
+}
+
+.sidebar__option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.sidebar__option-group--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar__option-label {
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.sidebar__tool-btn {
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 6px;
 }
 
 .header__array-accessors {
@@ -238,7 +309,7 @@ h1 {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: 1px;
+  gap: 0;
   overflow-x: auto;
   scrollbar-width: thin;
   padding: 5px 0;
@@ -331,43 +402,22 @@ footer {
   flex: 1;
 }
 
-.footer__path-display {
-  margin-right: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--secondary-color);
-}
-
-.footer__breadcrumb-wrapper {
-  flex: 1;
-  overflow-x: auto;
-  white-space: nowrap;
-  scrollbar-width: thin;
-  margin-right: 10px;
-}
-
-.footer__breadcrumb-wrapper::-webkit-scrollbar {
-  height: 4px;
-}
-
-.footer__breadcrumb-wrapper::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 4px;
-}
 
 .breadcrumb__display {
   display: flex;
   align-items: center;
   min-height: 20px;
+  padding: 4px;
+  background-color: rgba(0, 123, 255, 0.1);
+
 }
 
 .breadcrumb__item {
   display: inline-block;
   /* padding: 2px 8px; */
-  padding: 2px 2px;
-  background-color: rgba(0, 123, 255, 0.1);
-  border-radius: 4px;
+  padding: 0;
+  
+  /* border-radius: 4px; */
   /* margin-right: 5px; */
   margin-right: 0;
   font-size: 0.8rem;
@@ -376,11 +426,11 @@ footer {
 }
 
 .breadcrumb__item:hover {
-  background-color: rgba(0, 123, 255, 0.2);
+  background-color: rgba(0, 123, 255, 0.4);
 }
 
 .breadcrumb__separator {
-  margin: 0 5px;
+  margin: 0;
   color: var(--secondary-color);
 }
 
@@ -389,18 +439,6 @@ footer {
   color: var(--secondary-color);
   font-style: italic;
   padding: 2px 4px;
-}
-
-.footer__path-copy {
-  cursor: pointer;
-  color: var(--secondary-color);
-  padding: 2px 5px;
-  border-radius: var(--border-radius);
-  margin-right: 5px;
-}
-
-.footer__path-copy:hover {
-  background-color: var(--button-hover);
 }
 
 .footer__status-text {
@@ -796,6 +834,7 @@ input:checked + .theme-toggle__slider:before {
   padding: 2px 6px;
   font-size: 0.78rem;
   white-space: nowrap;
+  position: relative;
 }
 
 .accessor-chip code {
@@ -806,6 +845,38 @@ input:checked + .theme-toggle__slider:before {
 .accessor-chip__copy {
   padding: 2px 4px;
   font-size: 0.75rem;
+}
+
+.accessor-chip__tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--header-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  font-size: 16px;
+  white-space: nowrap;
+  z-index: 300;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  color: var(--text-color);
+}
+
+.accessor-chip__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--border-color);
+}
+
+.accessor-chip:hover .accessor-chip__tooltip {
+  display: block;
 }
 
 /* Prevent global styles from leaking into Monaco Editor internals */

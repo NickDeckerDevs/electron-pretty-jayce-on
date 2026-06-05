@@ -40,7 +40,7 @@
         await navigator.clipboard.writeText(largeJson);
         status.textContent = `Copied ${(largeJson.length / 1024).toFixed(1)}KB to clipboard. Opening Pretty Jayce On…`;
         setTimeout(() => {
-          window.location.href = 'json-prettifier://send?source=clipboard';
+          window.location.href = 'json-prettifier://send?source=clipboard&var_name=dataset';
         }, 300);
       } catch (err) {
         status.textContent = `Clipboard access denied: ${err.message}. Try running from a local server (not file://).`;

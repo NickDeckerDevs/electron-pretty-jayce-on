@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electron', {
   getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
   getPendingPayload: () => ipcRenderer.invoke('json:getPendingPayload'),
   readClipboard: () => ipcRenderer.invoke('clipboard:read'),
+  openDevTools: () => ipcRenderer.invoke('devtools:open'),
   onJsonReceived: (callback) => {
     ipcRenderer.on('json:received', (_event, payload) => callback(payload));
   },

@@ -115,17 +115,18 @@ Three bugs found — all in `renderer.js` and `index.html`:
 
 ---
 
-## Phase 3: Add Changelogs to All Modified Files — TODO
+## Phase 3: Add Changelogs to All Modified Files — COMPLETED ✓
 
-Run `/changelog` after Phase 2 is resolved to add dated changelog blocks to all files modified or created during this migration.
+Dated changelog blocks added during the Phase 1 migration (2026-05-01) and the housekeeping refactor (2026-05-07).
 
-Files to receive changelogs:
-- `renderer.js`
-- `storage.js` (new)
-- `index.html`
-- `main.js`
-- `preload.js`
-- `package.json` — JSON, will be noted in summary instead of inline comment
+Files with changelogs:
+- `renderer.js` — 5/1/2026 (Phase 1) + 5/7/2026 (housekeeping)
+- `storage.js` — 5/1/2026
+- `index.html` — 5/1/2026 + 5/7/2026
+- `styles.css` — 5/7/2026 (added during housekeeping, no Phase 1 entry)
+- `main.js` — 5/1/2026
+- `preload.js` — 5/1/2026
+- `package.json` — JSON, noted in summary instead of inline comment
 
 ---
 

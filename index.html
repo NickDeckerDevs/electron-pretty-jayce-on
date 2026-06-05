@@ -1,4 +1,19 @@
 <!--
+5/7/2026 - nick decker
+ADDED
+- Two-row header layout (header__action-row--one / --two) — collapsed from the original three-row plan after Task 10
+- Right-side options sidebar housing theme toggle, settings, variable-name input, path/breadcrumbs, accessor-chip target
+- #variable-name input relocated from the footer into the header path group
+- #array-accessors container for inline accessor chips on array paths
+
+CHANGED
+- All CSS class names converted to BEM (header__container, header__controls, btn--primary, btn--secondary, btn--action, btn--icon, breadcrumb__display, breadcrumb__item, breadcrumb__separator, footer__status-bar, footer__error, footer__path-display, footer__path-copy, footer__status-text, editor__container, editor__content, sidebar__header/__content, sidebar__documents-list, modal__content/__header/__body/__footer, form__group, settings__section, theme-toggle__switch/__slider/__label, theme-editor__colors/__color-picker/__preview/__preview-code, custom-themes__list/__item/__item-preview, toast__message)
+- Status bar moved from <main> into <footer>
+- Button text: "Saved" → "History", "Save" → "Save To History"
+
+REMOVED
+- Old footer .default-object-name variable-name block (now lives in the header)
+
 5/1/2026 - nick decker
 ADDED
 - storage.js script tag for localStorage persistence layer
@@ -26,84 +41,52 @@ CHANGED
     <body>
         <header>
             <div class="header__container">
-                <h1 class="header__app-title">JSON Prettifier</h1>
 
-                <!-- Row 1: Editor controls -->
-                <div class="header__action-row header__action-row--one">
-                    <div class="header__control-group">
-                        <label>Indentation:</label>
-                        <select id="indentation" title="Indentation">
-                            <option value="2">2 Spaces</option>
-                            <option value="4">4 Spaces</option>
-                            <option value="tab">Tab</option>
-                        </select>
-                    </div>
-                    <div class="header__control-group">
-                        <label>View Mode:</label>
-                        <select id="view-mode" title="View Mode">
-                            <option value="formatted">Formatted</option>
-                            <option value="tree">Tree View</option>
-                        </select>
-                    </div>
-                    <button id="expand-all" class="btn--action"><i
-                            class="fas fa-expand-alt"></i> Expand All</button>
-                    <button id="collapse-all" class="btn--action"><i
-                            class="fas fa-compress-alt"></i> Collapse All</button>
-                    <button id="sort-json" class="btn--action"><i
-                            class="fas fa-sort-alpha-down"></i> Sort
-                        Properties</button>
-                    <button id="unescape-strings" class="btn--action"><i
-                            class="fas fa-indent"></i> Unescape Strings</button>
-                </div>
-
-                <!-- Row 2: Document actions -->
-                <div class="header__action-row header__action-row--two">
-                    <div class="actions-buttons">
+                <!-- Title + Toolbar -->
+                <div class="header__title-row">
+                    <h1 class="header__app-title">JayceOn Prettifier</h1>
+                    <div class="header__toolbar">
                         <button id="toggle-sidebar" class="btn--secondary"><i
                                 class="fas fa-folder-open"></i> History</button>
                         <button id="prettify" class="btn--primary">Prettify</button>
                         <button id="clear" class="btn--secondary">Clear</button>
                         <button id="copy" class="btn--secondary">Copy</button>
                         <button id="save-document" class="btn--secondary"><i
-                                class="fas fa-save"></i> Save To History</button>
-                    </div>
-                    <div class="theme-toggle">
-                        <span class="theme-toggle__label">Dark Mode</span>
-                        <label class="theme-toggle__switch">
-                            <input type="checkbox" id="theme-toggle">
-                            <span class="theme-toggle__slider"></span>
-                        </label>
-                    </div>
-                    <div class="header__settings-group">
-                        <span>Settings</span>
-                        <button id="settings-btn" class="btn--icon"
-                            title="Settings"><i class="fas fa-cog"></i></button>
+                                class="fas fa-save"></i> Save</button>
+                        <button id="toggle-fold-all" class="btn--action"><i
+                                class="fas fa-expand-alt"></i> Expand All</button>
+                        <button id="toggle-options-sidebar" class="btn--action"><i
+                                class="fas fa-sliders-h"></i> Options</button>
                     </div>
                 </div>
 
-                <!-- Row 3: Theme, settings, path -->
-                <div class="header__action-row header__action-row--three">
-                    
-                    <div class="header__path-group">
-                        <input id="variable-name"
-                            class="header__variable-name-input" value="data">
-                        <span class="header__path-label">Path:</span>
-                        <div class="header__breadcrumb-wrapper">
-                            <div id="breadcrumb-display-header"
-                                class="breadcrumb__display"></div>
-                            <div id="array-accessors"
-                                class="header__array-accessors"></div>
+                <!-- Path row + hover-expand array accessor panel -->
+                <div class="header__path-area">
+                    <div class="header__action-row">
+                        <div class="header__path-group">
+                            <input id="variable-name"
+                                class="header__variable-name-input" value="data">
+                            <span class="header__path-label">Path:</span>
+                            <div class="header__breadcrumb-wrapper">
+                                <div id="breadcrumb-display-header"
+                                    class="breadcrumb__display"></div>
+                            </div>
+                            <button id="path-copy-header" class="btn--action"
+                                title="Copy Path"><i class="fas fa-copy"></i> Copy
+                                Path</button>
                         </div>
-                        <button id="path-copy-header" class="btn--action"
-                            title="Copy Path"><i class="fas fa-copy"></i> Copy
-                            Path</button>
+                    </div>
+                    <div class="header__array-panel">
+                        <div id="array-accessors"
+                            class="header__array-accessors"></div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </header>
 
         <main>
+            <!-- Left sidebar: saved documents / history -->
             <div class="sidebar" id="sidebar">
                 <div class="sidebar__header">
                     <h3>Saved Documents</h3>
@@ -112,9 +95,75 @@ CHANGED
                 </div>
                 <div class="sidebar__content">
                     <div id="documents-list" class="sidebar__documents-list">
-                        <!-- Saved documents will be loaded here -->
                         <div class="empty-state">No saved documents</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Right sidebar: options -->
+            <div id="options-sidebar" class="sidebar sidebar--right">
+                <div class="sidebar__header">
+                    <h3>Options</h3>
+                    <button id="close-options-sidebar" class="btn--icon"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="sidebar__content">
+
+                    <div class="sidebar__section-label">EDITOR</div>
+
+                    <div class="sidebar__option-group">
+                        <label class="sidebar__option-label">Indentation</label>
+                        <select id="indentation" title="Indentation">
+                            <option value="2">2 Spaces</option>
+                            <option value="4">4 Spaces</option>
+                            <option value="tab">Tab</option>
+                        </select>
+                    </div>
+
+                    <div class="sidebar__option-group">
+                        <label class="sidebar__option-label">View Mode</label>
+                        <select id="view-mode" title="View Mode">
+                            <option value="formatted">Formatted</option>
+                            <option value="tree">Tree View</option>
+                        </select>
+                    </div>
+
+                    <div class="sidebar__section-label">APPEARANCE</div>
+
+                    <div class="sidebar__option-group sidebar__option-group--row">
+                        <span class="sidebar__option-label">Dark Mode</span>
+                        <label class="theme-toggle__switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="theme-toggle__slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="sidebar__section-label">TOOLS</div>
+
+                    <button id="sort-json" class="btn--action sidebar__tool-btn"><i
+                            class="fas fa-sort-alpha-down"></i> Sort Properties</button>
+                    <button id="unescape-strings"
+                        class="btn--action sidebar__tool-btn"><i
+                            class="fas fa-indent"></i> Unescape Strings</button>
+
+                    <div class="sidebar__section-label">THEMES</div>
+
+                    <div class="custom-themes__list" id="custom-themes-list"></div>
+                    <button id="create-theme-btn"
+                        class="btn--secondary sidebar__tool-btn"><i
+                            class="fas fa-palette"></i> Create New Theme</button>
+
+                    <button id="open-devtools-btn"
+                        class="btn--secondary sidebar__tool-btn"><i
+                            class="fas fa-bug"></i> Open DevTools</button>
+
+                    <div class="sidebar__section-label">INTEGRATE</div>
+
+                    <button id="copy-js-snippet" class="btn--action sidebar__tool-btn"><i
+                            class="fab fa-js"></i> Copy JS function</button>
+                    <button id="copy-hubl-snippet" class="btn--action sidebar__tool-btn"><i
+                            class="fas fa-code"></i> Copy HubL macro</button>
+
                 </div>
             </div>
 
@@ -122,17 +171,10 @@ CHANGED
                 <div id="json-editor" class="editor__content"></div>
             </div>
         </main>
+
         <footer>
             <div class="footer__status-bar">
                 <div id="error-message" class="footer__error"></div>
-                <div class="footer__breadcrumb-wrapper">
-                    <div id="breadcrumb-display" class="breadcrumb__display">
-                    </div>
-                </div>
-                <div id="path-display" class="footer__path-display"></div>
-                <div id="path-copy" class="footer__path-copy" title="Copy path">
-                    <i class="fas fa-copy"></i>
-                </div>
                 <div id="status-text" class="footer__status-text">Ready</div>
             </div>
         </footer>
@@ -162,51 +204,6 @@ CHANGED
                     <button id="confirm-save" class="btn--primary">Save</button>
                     <button id="cancel-save"
                         class="btn--secondary">Cancel</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Modal -->
-        <div id="settings-modal" class="modal">
-            <div class="modal__content">
-                <div class="modal__header">
-                    <h3>Editor Preferences</h3>
-                    <button id="close-settings-modal" class="btn--icon"><i
-                            class="fas fa-times"></i></button>
-                </div>
-                <div class="modal__body">
-                    <div class="settings__section">
-                        <div class="form__group">
-                            <label for="default-indentation">Default
-                                Indentation:</label>
-                            <select id="default-indentation">
-                                <option value="2">2 Spaces</option>
-                                <option value="4">4 Spaces</option>
-                                <option value="tab">Tab</option>
-                            </select>
-                        </div>
-                        <div class="form__group">
-                            <label for="default-theme">Default Theme:</label>
-                            <select id="default-theme">
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="settings__section">
-                        <h4>Custom Theme</h4>
-                        <div class="custom-themes__list" id="custom-themes-list">
-                            <!-- Custom themes will appear here -->
-                        </div>
-                        <div class="form__group">
-                            <button id="create-theme-btn"
-                                class="btn--secondary">Create New Theme</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal__footer">
-                    <button id="save-settings" class="btn--primary">Save
-                        Settings</button>
                 </div>
             </div>
         </div>

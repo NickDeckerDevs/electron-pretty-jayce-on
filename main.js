@@ -27,10 +27,11 @@ let mainWindow;
 function parseProtocolUrl(url) {
   try {
     const parsed = new URL(url);
+    const varName = parsed.searchParams.get('var_name') || null;
     const source = parsed.searchParams.get('source');
-    if (source === 'clipboard') return { source: 'clipboard', data: null };
+    if (source === 'clipboard') return { source: 'clipboard', data: null, varName };
     const data = parsed.searchParams.get('data');
-    if (data) return { source: 'url', data: decodeURIComponent(data) };
+    if (data) return { source: 'url', data: decodeURIComponent(data), varName };
   } catch (e) {
     console.error('Failed to parse protocol URL:', e);
   }
@@ -213,3 +214,7 @@ ipcMain.handle('json:getPendingPayload', () => {
 });
 
 ipcMain.handle('clipboard:read', () => clipboard.readText());
+
+ipcMain.handle('devtools:open', () => {
+  if (mainWindow) mainWindow.webContents.openDevTools();
+});

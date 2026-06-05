@@ -1,16 +1,20 @@
 # JSON Prettifier
 
-A lightweight, standalone JSON formatting tool built with Electron and also available as a web application. This tool provides a clean, ad-free interface for formatting and exploring JSON data.
+A lightweight, standalone JSON formatting and exploration tool built with Electron. Clean, ad-free, and fully offline — no server, no network calls.
 
 ## Features
 
-- Format and validate JSON with customizable indentation (2 spaces, 4 spaces, or tabs)
-- Syntax highlighting powered by Monaco Editor (same engine as VS Code)
-- Dark and light mode themes
-- JSON path display shows the path to your cursor position
-- Error detection and helpful error messages
-- Copy formatted JSON to clipboard
-- Works as both a desktop application and a web application
+- **Prettify** — format and validate JSON with customizable indentation (2 spaces, 4 spaces, or tabs); auto-fixes JS-object-style input (unquoted keys, single quotes, trailing commas)
+- **Tree view** with expand-all / collapse-all controls
+- **Sort properties** alphabetically across the entire tree
+- **Unescape nested JSON strings** — turns embedded JSON-as-string into real nested objects
+- **Saved history** — save documents with titles + tags, sidebar list, load/delete
+- **Custom Monaco themes** — theme editor with color pickers, save/apply/clear, persisted between sessions
+- **JSON path** display follows your cursor: full path, breadcrumb chips for navigation, "Copy Path" with a configurable variable name
+- **Array accessor chips** — when the cursor sits on an array item, get one-click copies for `find`, `filter`, `indexOf`, `includes`, `map`, `findIndex` access patterns
+- **Dark / light mode** with persistent preference
+- **Find / replace** powered by Monaco's native widget
+- Syntax highlighting via Monaco Editor (same engine as VS Code), loaded locally from `node_modules`
 
 ## Screenshots
 
@@ -18,49 +22,26 @@ A lightweight, standalone JSON formatting tool built with Electron and also avai
 
 ## Installation & Running
 
-### Option 1: Running as a Web Application
+This is an Electron desktop app. Persistence uses the browser's `localStorage` — no server required.
 
 1. **Download the code**:
    - Clone this repository or download the ZIP file
-   - Extract to a folder on your local machine
 
 2. **Install dependencies**:
    ```
-   npm install express
+   npm install
    ```
 
-3. **Start the web server**:
+3. **Run in development**:
    ```
-   node server.js
-   ```
-
-4. **Access the application**:
-   - Open your web browser and navigate to: `http://localhost:5000`
-
-### Option 2: Running as an Electron Desktop Application
-
-1. **Download the code** as described above
-
-2. **Install dependencies**:
-   ```
-   npm install electron@latest
+   npm start
    ```
 
-3. **Run the Electron app**:
-   - Directly with npx:
-     ```
-     npx electron .
-     ```
-   - Or add to package.json scripts and run with npm:
-     ```json
-     "scripts": {
-       "start": "electron ."
-     }
-     ```
-     Then run:
-     ```
-     npm start
-     ```
+4. **Build a distributable**:
+   ```
+   npm run build
+   ```
+   Produces a `.dmg` (macOS) or `.exe` (Windows) via electron-builder.
 
 ## Troubleshooting
 
@@ -92,42 +73,11 @@ A lightweight, standalone JSON formatting tool built with Electron and also avai
    - Check your console for errors (View → Developer → Developer Tools in the app)
    - Ensure all file paths in main.js are correct relative to your working directory
 
-### Web Application Issues
-
-1. **Port Already in Use**:
-   - If port 5000 is already in use, modify the port in server.js:
-     ```javascript
-     const port = process.env.PORT || 3000; // Change to any available port
-     ```
-
-2. **CORS Issues**:
-   - If integrating with other services, you might encounter CORS errors
-   - Add appropriate CORS headers in server.js:
-     ```javascript
-     app.use((req, res, next) => {
-       res.header('Access-Control-Allow-Origin', '*');
-       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-       next();
-     });
-     ```
-
-3. **Monaco Editor Not Loading**:
-   - If the editor doesn't load, it could be due to network issues accessing CDN resources
-   - Consider installing monaco-editor locally:
-     ```
-     npm install monaco-editor
-     ```
-   - Then update the path in HTML files to use the local version
-
 ## Planned Features
 
-- Collapsible JSON nodes for easier navigation of large structures
-- Ability to sort keys alphabetically at different levels
-- Enhanced breadcrumb navigation showing the full JSON path
 - Export options (save to file, export as different formats)
-- More editor themes
-- Search and replace functionality
-- Tabs and spaces configuration
+- Schema-aware validation
+- Diff view between two JSON documents
 
 ## License
 

@@ -1,4 +1,24 @@
 /*
+5/7/2026 - nick decker
+ADDED
+- currentPath module-level state — tracked from cursor position so the variable-name input can re-render breadcrumbs without a cursor move
+- activeCustomThemeId module-level state — tracks which custom Monaco theme (if any) is applied
+- renderArrayAccessors() — builds 7 accessor-pattern chips (index/find/filter/indexOf/includes/map/findIndex) when the cursor sits on an array item
+- clearCustomTheme() — resets Monaco theme to vs/vs-dark and persists the cleared state
+- variableNameInput / arrayAccessors refs in ui object; auto-width listener for #variable-name that also refreshes breadcrumbs
+
+CHANGED
+- generateAccessCode() reads variable name from the #variable-name input instead of hardcoded 'data'
+- applyCustomTheme() now toggles — clicking the active theme clears it; otherwise applies and persists
+- updateCustomThemesList() marks active item with .custom-themes__item--active and appends a "Clear Theme" button when one is active
+- updateBreadcrumbs() detects array-index paths and calls renderArrayAccessors(); clears chips on non-array paths
+- loadCustomThemes() restores the persisted activeCustomThemeId after themes are loaded
+- saveCurrentPreferences() / settings save handler include activeCustomThemeId in the persisted preferences
+- All dynamic className strings updated to BEM (document__item, custom-themes__item, breadcrumb__item, breadcrumb__separator, btn--icon, etc.)
+- ui.editorContainer querySelector points at .editor__container
+*/
+
+/*
 5/1/2026 - nick decker
 ADDED
 - #toggle-sidebar button click handler to open/close the saved documents sidebar
@@ -450,28 +470,31 @@ function initializeEditors() {
     loadInitialContent();
 
     window.electron.onJsonReceived(async (payload) => {
-        const jsonData = payload.source === 'clipboard'
-            ? await window.electron.readClipboard()
-            : payload.data;
-        if (jsonData) {
-            jsonEditor.setValue(jsonData);
-            ui.statusText.textContent = 'Loaded from external source';
+        if (await applyIncomingPayload(payload)) {
             showToast('JSON loaded from external source!');
         }
     });
 }
 
+async function applyIncomingPayload(payload) {
+    if (!payload) return false;
+    const jsonData = payload.source === 'clipboard'
+        ? await window.electron.readClipboard()
+        : payload.data;
+    if (!jsonData) return false;
+    jsonEditor.setValue(jsonData);
+    ui.statusText.textContent = 'Loaded from external source';
+    if (payload.varName) {
+        ui.variableNameInput.value = payload.varName;
+        ui.variableNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    return true;
+}
+
 async function loadInitialContent() {
     const payload = await window.electron.getPendingPayload();
-    if (payload) {
-        const jsonData = payload.source === 'clipboard'
-            ? await window.electron.readClipboard()
-            : payload.data;
-        if (jsonData) {
-            jsonEditor.setValue(jsonData);
-            ui.statusText.textContent = 'Loaded from external source';
-            return;
-        }
+    if (await applyIncomingPayload(payload)) {
+        return;
     }
 
     const lastSession = localStorage.getItem('lastEditorContent');
@@ -661,15 +684,13 @@ function getJsonPathAtPosition(jsonString, position) {
 }
 
 function updateBreadcrumbs(jsonPath) {
-    if (!ui.breadcrumbDisplay) return;
+    if (!ui.breadcrumbDisplayHeader) return;
 
-    ui.breadcrumbDisplay.innerHTML = '';
-    if (ui.breadcrumbDisplayHeader) ui.breadcrumbDisplayHeader.innerHTML = '';
+    ui.breadcrumbDisplayHeader.innerHTML = '';
 
     if (!jsonPath) {
-        const emptyMessage = '<div class="breadcrumb__empty">No path selected</div>';
-        ui.breadcrumbDisplay.innerHTML = emptyMessage;
-        if (ui.breadcrumbDisplayHeader) ui.breadcrumbDisplayHeader.innerHTML = emptyMessage;
+        ui.breadcrumbDisplayHeader.innerHTML = '<div class="breadcrumb__empty">No path selected</div>';
+        if (ui.arrayPanel) ui.arrayPanel.classList.remove('has-content');
         return;
     }
 
@@ -738,10 +759,8 @@ function updateBreadcrumbs(jsonPath) {
         });
     };
 
-    populateBreadcrumbs(ui.breadcrumbDisplay);
-    if (ui.breadcrumbDisplayHeader) populateBreadcrumbs(ui.breadcrumbDisplayHeader);
+    populateBreadcrumbs(ui.breadcrumbDisplayHeader);
 
-    if (ui.pathCopyBtn) ui.pathCopyBtn.dataset.path = jsonPath;
     if (ui.pathCopyHeaderBtn) ui.pathCopyHeaderBtn.dataset.path = jsonPath;
 
     const arrayMatch = jsonPath.match(/^(.*)\[(\d+)\]$/);
@@ -763,6 +782,7 @@ function updateBreadcrumbs(jsonPath) {
         renderArrayAccessors(arrayBasePath, index, value);
     } else if (ui.arrayAccessors) {
         ui.arrayAccessors.innerHTML = '';
+        if (ui.arrayPanel) ui.arrayPanel.classList.remove('has-content');
     }
 }
 
@@ -803,18 +823,22 @@ function renderArrayAccessors(arrayBasePath, index, value) {
         : null;
 
     const patterns = [
-        { label: `${base}[${index}]`, code: `${base}[${index}]` },
-        { label: `find`, code: isObject ? `${base}.find(i => typeof i === 'object')` : `${base}.find(i => i === ${valRepr})` },
-        { label: `filter`, code: isObject ? `${base}.filter(i => typeof i === 'object')` : `${base}.filter(i => i === ${valRepr})` },
-        { label: `indexOf`, code: isObject ? null : `${base}.indexOf(${valRepr})` },
-        { label: `includes`, code: isObject ? null : `${base}.includes(${valRepr})` },
-        { label: `map`, code: isObject ? `${base}.map(i => i)` : `${base}.map(i => i)` },
-        { label: `findIndex`, code: isObject ? `${base}.findIndex(i => typeof i === 'object')` : `${base}.findIndex(i => i === ${valRepr})` },
+        { label: `${base}[${index}]`, code: `${base}[${index}]`, tooltip: 'Access element directly by index' },
+        { label: `find`, code: isObject ? `${base}.find(i => typeof i === 'object')` : `${base}.find(i => i === ${valRepr})`, tooltip: 'Returns the first element matching the condition' },
+        { label: `filter`, code: isObject ? `${base}.filter(i => typeof i === 'object')` : `${base}.filter(i => i === ${valRepr})`, tooltip: 'Returns all matching elements as a new array' },
+        { label: `indexOf`, code: isObject ? null : `${base}.indexOf(${valRepr})`, tooltip: 'Returns the index of the value, or -1 if not found' },
+        { label: `includes`, code: isObject ? null : `${base}.includes(${valRepr})`, tooltip: 'Returns true if the array contains this value' },
+        { label: `map`, code: isObject ? `${base}.map(i => i)` : `${base}.map(i => i)`, tooltip: 'Returns a new array by transforming each element' },
+        { label: `findIndex`, code: isObject ? `${base}.findIndex(i => typeof i === 'object')` : `${base}.findIndex(i => i === ${valRepr})`, tooltip: 'Returns the index of the first match, or -1' },
     ].filter(p => p.code !== null);
 
-    patterns.forEach(({ label, code }) => {
+    patterns.forEach(({ label, code, tooltip }) => {
         const chip = document.createElement('div');
         chip.className = 'accessor-chip';
+
+        const tooltipEl = document.createElement('div');
+        tooltipEl.className = 'accessor-chip__tooltip';
+        tooltipEl.textContent = tooltip;
 
         const codeEl = document.createElement('code');
         codeEl.textContent = code;
@@ -829,10 +853,13 @@ function renderArrayAccessors(arrayBasePath, index, value) {
                 .catch(err => showError('Failed to copy: ' + err));
         });
 
+        chip.appendChild(tooltipEl);
         chip.appendChild(codeEl);
         chip.appendChild(copyBtn);
         ui.arrayAccessors.appendChild(chip);
     });
+
+    if (ui.arrayPanel) ui.arrayPanel.classList.add('has-content');
 }
 
 function setupPathCopyButton(btn) {
@@ -868,7 +895,6 @@ function setupEventListeners() {
         ui.statusText.textContent = 'Ready';
         currentJson = null;
         currentDocumentId = null;
-        ui.pathDisplay.textContent = '';
     });
 
     ui.copyBtn.addEventListener('click', () => {
@@ -893,11 +919,9 @@ function setupEventListeners() {
         const content = jsonEditor.getValue();
         if (!content || content.trim() === '') return;
         currentPath = getJsonPathAtPosition(content, e.position);
-        ui.pathDisplay.textContent = currentPath || '';
         updateBreadcrumbs(currentPath);
     });
 
-    setupPathCopyButton(ui.pathCopyBtn);
     setupPathCopyButton(ui.pathCopyHeaderBtn);
 
     if (ui.unescapeStringsBtn) {
@@ -970,44 +994,16 @@ function setupEventListeners() {
         ui.closeSaveModal.addEventListener('click', () => closeModal(ui.saveModal));
     }
 
-    if (ui.settingsBtn) {
-        ui.settingsBtn.addEventListener('click', () => {
-            ui.defaultIndentation.value = ui.indentationSelect.value;
-            ui.defaultTheme.value = isDarkTheme ? 'dark' : 'light';
-            ui.settingsModal.classList.add('active');
+    if (ui.toggleOptionsSidebarBtn) {
+        ui.toggleOptionsSidebarBtn.addEventListener('click', () => {
+            ui.optionsSidebar.classList.toggle('active');
         });
     }
 
-    if (ui.saveSettingsBtn) {
-        ui.saveSettingsBtn.addEventListener('click', () => {
-            const defaultIndentation = ui.defaultIndentation.value;
-            const defaultTheme = ui.defaultTheme.value;
-
-            ui.indentationSelect.value = defaultIndentation;
-            if ((defaultTheme === 'dark' && !isDarkTheme) || (defaultTheme === 'light' && isDarkTheme)) {
-                ui.themeToggle.checked = defaultTheme === 'dark';
-                ui.themeToggle.dispatchEvent(new Event('change'));
-            }
-
-            saveUserPreferences({
-                theme: defaultTheme,
-                indentation: defaultIndentation === 'tab' ? -1 : Number(defaultIndentation),
-                useSpaces: defaultIndentation !== 'tab',
-                activeCustomThemeId
-            }).then(success => {
-                if (success) {
-                    showToast('Settings saved successfully!');
-                    closeModal(ui.settingsModal);
-                    prettifyContent();
-                } else {
-                    showError('Failed to save settings');
-                }
-            });
+    if (ui.closeOptionsSidebarBtn) {
+        ui.closeOptionsSidebarBtn.addEventListener('click', () => {
+            ui.optionsSidebar.classList.remove('active');
         });
-    }
-
-    if (ui.closeSettingsModal) {
-        ui.closeSettingsModal.addEventListener('click', () => closeModal(ui.settingsModal));
     }
 
     if (ui.createThemeBtn) {
@@ -1077,19 +1073,20 @@ function setupEventListeners() {
         });
     }
 
-    if (ui.expandAllBtn) {
-        ui.expandAllBtn.addEventListener('click', () => {
-            if (!currentJson || currentViewMode !== 'tree') return;
-            const action = jsonEditor.getAction('editor.unfoldAll');
-            if (action) { action.run(); showToast('Expanded all nodes'); }
-        });
-    }
-
-    if (ui.collapseAllBtn) {
-        ui.collapseAllBtn.addEventListener('click', () => {
-            if (!currentJson || currentViewMode !== 'tree') return;
-            const action = jsonEditor.getAction('editor.foldAll');
-            if (action) { action.run(); showToast('Collapsed all nodes'); }
+    if (ui.toggleFoldAllBtn) {
+        let isFolded = false;
+        ui.toggleFoldAllBtn.addEventListener('click', () => {
+            if (!currentJson) return;
+            const actionId = isFolded ? 'editor.unfoldAll' : 'editor.foldAll';
+            const action = jsonEditor.getAction(actionId);
+            if (action) {
+                action.run();
+                isFolded = !isFolded;
+                ui.toggleFoldAllBtn.innerHTML = isFolded
+                    ? '<i class="fas fa-compress-alt"></i> Collapse All'
+                    : '<i class="fas fa-expand-alt"></i> Expand All';
+                showToast(isFolded ? 'Collapsed all nodes' : 'Expanded all nodes');
+            }
         });
     }
 
@@ -1123,6 +1120,59 @@ function setupEventListeners() {
         });
         sizeInput();
     }
+
+    if (ui.openDevToolsBtn) {
+        ui.openDevToolsBtn.addEventListener('click', () => {
+            if (window.electron && window.electron.openDevTools) {
+                window.electron.openDevTools();
+            }
+        });
+    }
+
+    if (ui.copyJsSnippetBtn) {
+        ui.copyJsSnippetBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildJsSnippet())
+                .then(() => showToast('JS function copied — paste into your site'))
+                .catch(err => showError('Failed to copy: ' + err));
+        });
+    }
+
+    if (ui.copyHublSnippetBtn) {
+        ui.copyHublSnippetBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildHublSnippet())
+                .then(() => showToast('HubL macro copied — paste into your HubSpot module'))
+                .catch(err => showError('Failed to copy: ' + err));
+        });
+    }
+}
+
+// --- Integration snippets ---
+
+function buildJsSnippet() {
+    return `// Pretty Jayce On — paste this into your site, then call jayceon('myVar', myData)
+function jayceon(varName, data) {
+  const json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  const qs = 'var_name=' + encodeURIComponent(varName);
+  if (json.length < 1500) {
+    window.location.href = 'json-prettifier://send?' + qs + '&data=' + encodeURIComponent(json);
+  } else {
+    navigator.clipboard.writeText(json).then(() => {
+      window.location.href = 'json-prettifier://send?' + qs + '&source=clipboard';
+    });
+  }
+}`;
+}
+
+function buildHublSnippet() {
+    return `{# Pretty Jayce On — paste into a HubSpot module, then call {{ jayceon('myVar', myData) }} #}
+{% macro jayceon(var_name, data) %}
+  {% set _json = data|tojson %}
+  <button
+    type="button"
+    style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #2563eb;background:#2563eb;color:#fff;border-radius:6px;font:500 13px/1.2 system-ui,sans-serif;cursor:pointer;"
+    onclick='(function(j,v){if(j.length<1500){location.href="json-prettifier://send?var_name="+encodeURIComponent(v)+"&data="+encodeURIComponent(j);}else{navigator.clipboard.writeText(j).then(function(){location.href="json-prettifier://send?var_name="+encodeURIComponent(v)+"&source=clipboard";});}})({{ _json|tojson }}, {{ var_name|tojson }})'
+  >Open in Pretty Jayce On</button>
+{% endmacro %}`;
 }
 
 // --- Entry point ---
@@ -1136,17 +1186,18 @@ document.addEventListener('DOMContentLoaded', () => {
         indentationSelect: document.getElementById('indentation'),
         themeToggle: document.getElementById('theme-toggle'),
         errorMessage: document.getElementById('error-message'),
-        pathDisplay: document.getElementById('path-display'),
         statusText: document.getElementById('status-text'),
-        expandAllBtn: document.getElementById('expand-all'),
-        collapseAllBtn: document.getElementById('collapse-all'),
+        toggleFoldAllBtn: document.getElementById('toggle-fold-all'),
         sortJsonBtn: document.getElementById('sort-json'),
         viewModeSelect: document.getElementById('view-mode'),
         sidebar: document.getElementById('sidebar'),
+        optionsSidebar: document.getElementById('options-sidebar'),
         documentsList: document.getElementById('documents-list'),
         customThemesList: document.getElementById('custom-themes-list'),
         toggleSidebarBtn: document.getElementById('toggle-sidebar'),
         closeSidebarBtn: document.getElementById('close-sidebar'),
+        toggleOptionsSidebarBtn: document.getElementById('toggle-options-sidebar'),
+        closeOptionsSidebarBtn: document.getElementById('close-options-sidebar'),
         unescapeStringsBtn: document.getElementById('unescape-strings'),
         saveDocumentBtn: document.getElementById('save-document'),
         saveModal: document.getElementById('save-modal'),
@@ -1155,26 +1206,22 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmSaveBtn: document.getElementById('confirm-save'),
         cancelSaveBtn: document.getElementById('cancel-save'),
         closeSaveModal: document.getElementById('close-save-modal'),
-        settingsBtn: document.getElementById('settings-btn'),
-        settingsModal: document.getElementById('settings-modal'),
-        defaultIndentation: document.getElementById('default-indentation'),
-        defaultTheme: document.getElementById('default-theme'),
-        saveSettingsBtn: document.getElementById('save-settings'),
-        closeSettingsModal: document.getElementById('close-settings-modal'),
         createThemeBtn: document.getElementById('create-theme-btn'),
+        openDevToolsBtn: document.getElementById('open-devtools-btn'),
         themeEditorModal: document.getElementById('theme-editor-modal'),
         themeName: document.getElementById('theme-name'),
         saveThemeBtn: document.getElementById('save-theme'),
         cancelThemeBtn: document.getElementById('cancel-theme'),
         closeThemeEditor: document.getElementById('close-theme-editor'),
-        pathCopyBtn: document.getElementById('path-copy'),
         pathCopyHeaderBtn: document.getElementById('path-copy-header'),
-        breadcrumbDisplay: document.getElementById('breadcrumb-display'),
         breadcrumbDisplayHeader: document.getElementById('breadcrumb-display-header'),
         toast: document.getElementById('toast'),
         toastMessage: document.getElementById('toast-message'),
         variableNameInput: document.getElementById('variable-name'),
         arrayAccessors: document.getElementById('array-accessors'),
+        arrayPanel: document.querySelector('.header__array-panel'),
+        copyJsSnippetBtn: document.getElementById('copy-js-snippet'),
+        copyHublSnippetBtn: document.getElementById('copy-hubl-snippet'),
     };
 
     require.config({ paths: { 'vs': './node_modules/monaco-editor/min/vs' } });

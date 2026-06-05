@@ -6,7 +6,7 @@ Before migrating to React, we need to clean up the Electron JSON Prettifier app:
 **Critical files:**
 - `index.html` — HTML structure
 - `styles.css` — All CSS
-- `renderer.js` — All JS (DOM refs in `ui` object at line 979, path functions at lines 534–709)
+- `renderer.js` — All JS (DOM refs in `ui` object, path functions)
 
 ---
 
@@ -21,6 +21,7 @@ Before migrating to React, we need to clean up the Electron JSON Prettifier app:
 7. ✅ Task 6 — variable name input styling + JS (depends on Task 4 HTML)
 8. ✅ Task 5 — path/accessor chips logic (depends on Tasks 4 & 6)
 9. ✅ Task 8 — custom theme toggle (self-contained JS/CSS)
+10. ✅ Task 10 — header collapse to 2 rows + right sidebar + UI polish (2026-05-05)
 
 ---
 
@@ -454,3 +455,121 @@ Chips showed `users > [0] > name` but Copy gave `data.users[0].name`.
 - [ ] Click on the `[0]` array element → 7 accessor chips appear
 - [ ] Click second object (`"id": 2`) → breadcrumbs: `data > users > [1] > id`
 - [ ] All chips copy correctly to clipboard
+
+---
+
+## Task 10 — Header Collapse, Right Sidebar, UI Polish ✅
+
+**Completed: 2026-05-05**
+
+A multi-part UI pass that simplifies the header from 3 rows to 2, introduces a right-side Options sidebar, and adds several polish items to the path/accessor area.
+
+---
+
+### 10a — Header restructured to 2 rows ✅
+
+**Old:** 3 rows (editor controls / document actions + theme + settings / path)
+**New:** 2 rows (title + toolbar / path)
+
+Row 1 is now `.header__title-row`: the app title on the left, all action buttons on the right in `.header__toolbar`.
+
+Buttons in toolbar: History, Prettify, Clear, Copy, Save, Expand/Collapse toggle, Options.
+
+Row 2 is `.header__path-area` wrapping the path row and the array accessor panel.
+
+**Files:** `index.html`, `styles.css` (added `.header__title-row`, `.header__toolbar`)
+
+---
+
+### 10b — Right sidebar: Options ✅
+
+New `#options-sidebar` (`.sidebar.sidebar--right`) positioned `right: 0` inside `<main>`, toggled by `#toggle-options-sidebar` / `#close-options-sidebar`.
+
+**Contains (moved from header rows and settings modal):**
+- Indentation select (`#indentation`)
+- View Mode select (`#view-mode`)
+- Dark Mode toggle (`#theme-toggle`)
+- Sort Properties button (`#sort-json`)
+- Unescape Strings button (`#unescape-strings`)
+- Custom Themes list (`#custom-themes-list`) + Create New Theme button (`#create-theme-btn`)
+
+Controls save instantly (no separate Save Settings button). The old Settings modal (`#settings-modal`) is retired and removed from the HTML.
+
+**CSS:** `.sidebar--right { left: auto; right: 0; border-left: ...; border-right: none; }` plus `.sidebar__section-label`, `.sidebar__option-group`, `.sidebar__tool-btn`.
+
+**JS:** Added `toggleOptionsSidebarBtn`, `closeOptionsSidebarBtn`, `optionsSidebar` to `ui` object. Removed `settingsBtn`, `settingsModal`, `defaultIndentation`, `defaultTheme`, `saveSettingsBtn`, `closeSettingsModal` from `ui` and their event handlers.
+
+---
+
+### 10c — Hover-expand array accessor panel ✅
+
+Array accessor chips moved out of the breadcrumb wrapper into a new `.header__array-panel` div inside `.header__path-area`. The panel is hidden at `max-height: 0` and slides to `max-height: 60px` when `.header__path-area` is hovered AND the panel has the `has-content` class.
+
+`has-content` is added by `renderArrayAccessors()` after populating chips and removed when the path changes to a non-array or is cleared.
+
+**CSS:** Transition on `max-height` and `padding`; border-top appears on expand.
+
+**JS:** `ui.arrayPanel` maps to `document.querySelector('.header__array-panel')`. Three locations toggle `has-content`: `renderArrayAccessors` (add), two clearing branches in `updateBreadcrumbs` (remove).
+
+---
+
+### 10d — Compact breadcrumb dot notation ✅
+
+`.breadcrumb__separator` margin reduced from `0 5px` → `0 1px`.
+`.header__breadcrumb-wrapper` gap reduced from `1px` → `0`.
+
+Path now reads `data.nested.items.[1]` with no extra spacing around dots.
+
+---
+
+### 10e — Array chip tooltips ✅
+
+Each accessor chip now shows a 16px tooltip on hover describing what the method does.
+
+**CSS:** `.accessor-chip` gets `position: relative`. New `.accessor-chip__tooltip` is `display: none` by default, shown on `.accessor-chip:hover`. Styled with border, shadow, and a bottom arrow via `::after`.
+
+**JS:** `tooltip` field added to each pattern in `renderArrayAccessors`. A `<div class="accessor-chip__tooltip">` is prepended inside each chip before the `<code>` element.
+
+| Method | Tooltip |
+|---|---|
+| `[index]` | Access element directly by index |
+| `find` | Returns the first element matching the condition |
+| `filter` | Returns all matching elements as a new array |
+| `indexOf` | Returns the index of the value, or -1 if not found |
+| `includes` | Returns true if the array contains this value |
+| `map` | Returns a new array by transforming each element |
+| `findIndex` | Returns the index of the first match, or -1 |
+
+---
+
+### 10f — Footer simplified ✅
+
+Removed from footer HTML: `#breadcrumb-display` wrapper, `#path-display`, `#path-copy` button.
+Footer now contains only `#error-message` + `#status-text`.
+
+Removed from `renderer.js`: `ui.breadcrumbDisplay`, `ui.pathDisplay`, `ui.pathCopyBtn` references and all usages. `updateBreadcrumbs` guard changed to check `ui.breadcrumbDisplayHeader` (the header display is now the only one).
+
+Removed from `styles.css`: `.footer__breadcrumb-wrapper`, `.footer__path-display`, `.footer__path-copy` rules.
+
+---
+
+### 10g — Expand/Collapse toggle button ✅
+
+Replaced separate `#expand-all` / `#collapse-all` buttons with a single `#toggle-fold-all` button. Tracks `isFolded` state locally in the event handler closure. Label and icon flip between "Expand All" / "Collapse All" on each click.
+
+---
+
+### Verification Checklist — Task 10
+
+- [ ] Header shows 2 rows: title+toolbar on top, path row below
+- [ ] Clicking "Options" opens right sidebar; clicking ✕ closes it
+- [ ] Changing Indentation in sidebar immediately reformats open JSON
+- [ ] Dark Mode toggle in sidebar works
+- [ ] Sort Properties and Unescape Strings work from sidebar
+- [ ] Custom theme create/apply/delete works from sidebar
+- [ ] Hover path row with array item selected → chip panel slides down
+- [ ] Hover path row with non-array item → no panel appears
+- [ ] Hover each chip → 16px tooltip appears above chip
+- [ ] Breadcrumb reads `data.nested.items.[1]` (no spaces around dots)
+- [ ] Expand All / Collapse All toggle with one button; label updates
+- [ ] Footer shows only error area + "Ready" — no breadcrumb, no path text
